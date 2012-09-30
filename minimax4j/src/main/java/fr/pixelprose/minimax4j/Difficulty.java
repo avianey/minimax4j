@@ -30,8 +30,10 @@ package fr.pixelprose.minimax4j;
 public interface Difficulty {
 
 	/**
-	 * The thinking depth for the decision rule used by the IA
+	 * The thinking depth for the decision rule used by the IA.<br/>
+	 * Implementation of Difficulty must return a value greater than 0 (&gt;0)
 	 * @return
+	 *         The thinking depth of the IA.
 	 */
 	public int getDepth();
 	

@@ -5,11 +5,33 @@
 						http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
+	<name>minimax4j</name>
 	<groupId>fr.pixelprose</groupId>
 	<artifactId>minimax4j</artifactId>
 	<version>1.0.0</version>
+	<description>
+	    Minimax4j is a pure java implementation of the minimax algorithm.
+	    It provides implementation of standard minimax but also provides alpha-beta pruning, negamax or negascout.
+	    This project can be use to implement two-person zero-sum games of perfect information such as chess, reversi, connect four, ...
+	</description>
+	<contributors>
+	    <contributor>
+	        <name>Antoine Vianey</name>
+	        <roles>
+	            <role>developer</role>
+	        </roles>
+	        <url>http://avianey.blogspot.com</url>
+	    </contributor>
+	</contributors>
+	
+	<licenses>
+	    <license>
+	        <name>GNU General Public License version 3</name>
+	        <url>http://www.gnu.org/licenses/</url>
+		</license>
+	</licenses>
 
-	<reporting>
+	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -19,5 +41,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
-	</reporting>
+	</build>
+	
 </project>
