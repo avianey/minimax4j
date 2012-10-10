@@ -32,6 +32,7 @@ import java.util.List;
  * <li>Checkers</li>
  * <li>Go</li>
  * <li>Four-in-a-row</li>
+ * <li>Tica Tac Toe</li>
  * <li>...</li>
  * </ul>
  * 
@@ -155,14 +156,14 @@ public abstract class IA<M extends Move> {
 		M bestMove = null;
 		Collection<M> moves = getPossibleMoves();
 		if (moves.isEmpty()) {
-			return minimax(null, depth - 1, DEPTH);
+			return minimax(null, depth + 1, DEPTH);
 		}
 		if (depth % 2 == DEPTH % 2) {
 			double score = minEvaluateValue();
 			double bestScore = minEvaluateValue();
 			for (M move : moves) {
 				makeMove(move);
-				score = minimax(null, depth - 1, DEPTH);
+				score = minimax(null, depth + 1, DEPTH);
 				unmakeMove(move);
 				if (score >= bestScore) {
 					bestScore = score;
@@ -178,7 +179,7 @@ public abstract class IA<M extends Move> {
 			double bestScore = maxEvaluateValue();
 			for (M move : moves) {
 				makeMove(move);
-				score = minimax(null, depth - 1, DEPTH);
+				score = minimax(null, depth + 1, DEPTH);
 				unmakeMove(move);
 				if (score <= bestScore) {
 					bestScore = score;
