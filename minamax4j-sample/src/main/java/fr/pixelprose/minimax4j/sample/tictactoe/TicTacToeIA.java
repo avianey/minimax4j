@@ -18,11 +18,12 @@ public class TicTacToeIA extends IA<TicTacToeMove> {
     private final int[][] grid;
     
     private int currentPlayer;
+    private int turn = 0;
     
     private TicTacToeDifficulty difficulty;
 
-    public TicTacToeIA(int depth) {
-        super(Algorithm.MINIMAX);
+    public TicTacToeIA(Algorithm algo, int depth) {
+        super(algo);
         this.difficulty = new TicTacToeDifficulty(depth);
         this.grid = new int[GRID_SIZE][GRID_SIZE];
         newGame();
@@ -36,6 +37,7 @@ public class TicTacToeIA extends IA<TicTacToeMove> {
         }
         // X start to play
         currentPlayer = PLAYER_X;
+        turn = 0;
     }
 
     @Override
@@ -45,33 +47,39 @@ public class TicTacToeIA extends IA<TicTacToeMove> {
 
     @Override
     public boolean isOver() {
+        return hasWon(PLAYER_O) || hasWon(PLAYER_X) || turn == 9;
+    }
+    
+    private boolean hasWon(int player) {
         return 
-            (grid[0][0] == grid[0][1] && grid[0][0] == grid[0][2] && grid[0][0] != FREE)
+            (player == grid[0][1] && player == grid[0][2] && player == grid[0][0])
             ||
-            (grid[1][0] == grid[1][1] && grid[1][0] == grid[1][2] && grid[1][0] != FREE)
+            (player == grid[1][1] && player == grid[1][2] && player == grid[1][0])
             ||
-            (grid[2][0] == grid[2][1] && grid[2][0] == grid[2][2] && grid[2][0] != FREE)
+            (player == grid[2][1] && player == grid[2][2] && player == grid[2][0])
             ||
-            (grid[0][0] == grid[1][0] && grid[0][0] == grid[2][0] && grid[0][0] != FREE)
+            (player == grid[1][0] && player == grid[2][0] && player == grid[0][0])
             ||
-            (grid[0][1] == grid[1][1] && grid[0][1] == grid[2][1] && grid[0][1] != FREE)
+            (player == grid[1][1] && player == grid[2][1] && player == grid[0][1])
             ||
-            (grid[0][2] == grid[1][2] && grid[0][2] == grid[2][2] && grid[0][2] != FREE)
+            (player == grid[1][2] && player == grid[2][2] && player == grid[0][2])
             ||
-            (grid[0][0] == grid[1][1] && grid[0][0] == grid[2][2] && grid[0][0] != FREE)
+            (player == grid[1][1] && player == grid[2][2] && player == grid[0][0])
             ||
-            (grid[0][2] == grid[1][1] && grid[0][2] == grid[2][0] && grid[0][2] != FREE);
+            (player == grid[1][1] && player == grid[2][0] && player == grid[0][2]);
     }
 
     @Override
     public void makeMove(TicTacToeMove move) {
         grid[move.getX()][move.getY()] = currentPlayer;
+        turn++;
         next();
     }
 
     @Override
     public void unmakeMove(TicTacToeMove move) {
         grid[move.getX()][move.getY()] = FREE;
+        turn--;
         previous();
     }
 
@@ -92,27 +100,26 @@ public class TicTacToeIA extends IA<TicTacToeMove> {
 
     @Override
     public double evaluate() {
-        if (isOver()) {
+        int eval = 0;
+        if (hasWon(currentPlayer)) {
             // 2 for the win
-            return 2;
-        }
-        if (grid[1][1] == currentPlayer) {
+            eval = 2;
+        } else if (hasWon(3 - currentPlayer)) {
+            // -2 for loosing
+            eval = -2;
+        } else if (grid[1][1] == currentPlayer) {
             // 1 for {1,1}
-            return 1;
+            eval = 1;
+        } else if (grid[1][1] == 3 - currentPlayer) {
+            // -1 for opponent {1,1}
+            eval = -1;
         }
-        // don't care of other moves
-        return 0;
-    }
-
-    @Override
-    public double minEvaluateValue() {
-        // evaluate return either 0, 1 or 2
-        return -1;
+        return eval;
     }
 
     @Override
     public double maxEvaluateValue() {
-        // evaluate return either 0, 1 or 2
+        // evaluate return either -2, -1, 0, 1 or 2
         return 3;
     }
 
@@ -128,31 +135,18 @@ public class TicTacToeIA extends IA<TicTacToeMove> {
     
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("+-+-+-+\n");
-        sb.append("|");
         sb.append(grid[0][0] == FREE ? " " : (grid[0][0] == PLAYER_O ? "O" : "X"));
-        sb.append("|");
         sb.append(grid[0][1] == FREE ? " " : (grid[0][1] == PLAYER_O ? "O" : "X"));
-        sb.append("|");
         sb.append(grid[0][2] == FREE ? " " : (grid[0][2] == PLAYER_O ? "O" : "X"));
-        sb.append("|\n");
-        sb.append("+-+-+-+\n");
-        sb.append("|");
+        sb.append("\n");
         sb.append(grid[1][0] == FREE ? " " : (grid[1][0] == PLAYER_O ? "O" : "X"));
-        sb.append("|");
         sb.append(grid[1][1] == FREE ? " " : (grid[1][1] == PLAYER_O ? "O" : "X"));
-        sb.append("|");
         sb.append(grid[1][2] == FREE ? " " : (grid[1][2] == PLAYER_O ? "O" : "X"));
-        sb.append("|\n");
-        sb.append("+-+-+-+\n");
-        sb.append("|");
+        sb.append("\n");
         sb.append(grid[2][0] == FREE ? " " : (grid[2][0] == PLAYER_O ? "O" : "X"));
-        sb.append("|");
         sb.append(grid[2][1] == FREE ? " " : (grid[2][1] == PLAYER_O ? "O" : "X"));
-        sb.append("|");
         sb.append(grid[2][2] == FREE ? " " : (grid[2][2] == PLAYER_O ? "O" : "X"));
-        sb.append("|\n");
-        sb.append("+-+-+-+");
+        sb.append("\n");
         return sb.toString();
     }
 
