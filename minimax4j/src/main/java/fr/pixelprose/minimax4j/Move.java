@@ -23,14 +23,14 @@ package fr.pixelprose.minimax4j;
 /**
  * 
  * Implement this interface to describe a Move in your game.<br>
- * A typical implementation for Chess game would be :
+ * A typical implementation for a Chess game would be :
  * <ul>
  * <li>The color of the piece</li>
  * <li>The type of the piece (king, queen, pawn, ...)</li>
  * <li>The position before the move</li>
  * <li>The position after the move</li>
  * </ul>
- * Additional information can be usefull to implement the unmakeMove abstract method of the IA class :
+ * Additional information might be necessary to implement the abstract {@link IA#unmakeMove(Move)} method of the {@link IA} class :
  * <ul>
  * <li>Taken pieces</li>
  * <li>...</li>

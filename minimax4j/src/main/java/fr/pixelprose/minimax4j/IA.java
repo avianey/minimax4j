@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * Abstract class implementing minimax and derivated decision rules for two-person zero-sum games of perfect information.
- * This class can be use to develop IA for several games, such as :
+ * Extend this class to implement IA for several games, such as :
  * <ul>
  * <li>Chess</li>
  * <li>Reversi</li>
@@ -65,8 +65,8 @@ public abstract class IA<M extends Move> {
     }
     
     /**
-     * Creates a new IA using the Negamax algorithm
-     * Negascout performs slowly on several tests for the moment...
+     * Creates a new IA using the {@link Algorithm#NEGAMAX} algorithm<br/>
+     * {@link Algorithm#NEGASCOUT} performs slowly on several tests at the moment...
      */
     public IA() {
         this(Algorithm.NEGAMAX);
@@ -314,7 +314,6 @@ public abstract class IA<M extends Move> {
      * The greatest the value is, the better the position of the current player is.
      * @return
      *         The evaluation of the position for the current player
-     * @see #minEvaluateValue()
      * @see #maxEvaluateValue()
      */
     public abstract double evaluate();
