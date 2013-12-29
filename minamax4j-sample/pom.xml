@@ -6,7 +6,7 @@
                         
     <modelVersion>4.0.0</modelVersion>
     <name>minamax4j-sample</name>
-    <groupId>fr.pixelprose</groupId>
+    <groupId>fr.avianey</groupId>
     <artifactId>minamax4j-sample</artifactId>
     <version>1.0.0</version>
     <description>
@@ -26,7 +26,7 @@
     
     <dependencies>
         <dependency>
-            <groupId>fr.pixelprose</groupId>
+            <groupId>fr.avianey</groupId>
             <artifactId>minimax4j</artifactId>
             <version>1.0.0</version>
         </dependency>
