@@ -1,15 +1,15 @@
-package fr.pixelprose.minamax4j.sample;
+package fr.avianey.minamax4j.sample;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
-import fr.pixelprose.minimax4j.IA;
-import fr.pixelprose.minimax4j.IA.Algorithm;
-import fr.pixelprose.minimax4j.sample.SampleRunner;
-import fr.pixelprose.minimax4j.sample.SampleRunner.Listener;
-import fr.pixelprose.minimax4j.sample.tictactoe.TicTacToeIA;
-import fr.pixelprose.minimax4j.sample.tictactoe.TicTacToeMove;
+import fr.avianey.minimax4j.IA;
+import fr.avianey.minimax4j.IA.Algorithm;
+import fr.avianey.minimax4j.sample.SampleRunner;
+import fr.avianey.minimax4j.sample.SampleRunner.Listener;
+import fr.avianey.minimax4j.sample.tictactoe.TicTacToeIA;
+import fr.avianey.minimax4j.sample.tictactoe.TicTacToeMove;
 
 /**
  * Check for every sample game that the same game is played exactly the same for each Algorithm :<br/>

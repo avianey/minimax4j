@@ -1,10 +1,10 @@
-package fr.pixelprose.minimax4j.sample.tictactoe;
+package fr.avianey.minimax4j.sample.tictactoe;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.pixelprose.minimax4j.Difficulty;
-import fr.pixelprose.minimax4j.IA;
+import fr.avianey.minimax4j.Difficulty;
+import fr.avianey.minimax4j.IA;
 
 /*
  * This file is part of minimax4j.

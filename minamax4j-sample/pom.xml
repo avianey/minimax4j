@@ -8,7 +8,7 @@
     <name>minamax4j-sample</name>
     <groupId>fr.avianey</groupId>
     <artifactId>minamax4j-sample</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <description>
         Minimax4j is a pure java implementation of the minimax algorithm.
         It provides implementation of standard minimax but also provides alpha-beta pruning, negamax or negascout.
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>fr.avianey</groupId>
             <artifactId>minimax4j</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

@@ -1,4 +1,4 @@
-package fr.pixelprose.minimax4j;
+package fr.avianey.minimax4j;
 
 /*
  * This file is part of minimax4j.
@@ -22,22 +22,19 @@ package fr.pixelprose.minimax4j;
 
 /**
  * 
- * Implement this interface to describe a Move in your game.<br>
- * A typical implementation for a Chess game would be :
- * <ul>
- * <li>The color of the piece</li>
- * <li>The type of the piece (king, queen, pawn, ...)</li>
- * <li>The position before the move</li>
- * <li>The position after the move</li>
- * </ul>
- * Additional information might be necessary to implement the abstract {@link IA#unmakeMove(Move)} method of the {@link IA} class :
- * <ul>
- * <li>Taken pieces</li>
- * <li>...</li>
- * </ul>
+ * Implement this interface to provide several difficulties for your IA implementation.
  * 
- * @author antoine vianey
- * @see IA#unmakeMove(Move)
+ * @author avianey
  *
  */
-public interface Move {}
+public interface Difficulty {
+
+    /**
+     * The thinking depth for the decision rule used by the IA.<br/>
+     * Implementation of Difficulty must return a value greater than 0 (&gt;0)
+     * @return
+     *         The thinking depth of the IA.
+     */
+    public int getDepth();
+    
+}

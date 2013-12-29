@@ -1,9 +1,9 @@
-package fr.pixelprose.minimax4j.sample;
+package fr.avianey.minimax4j.sample;
 
 import java.util.List;
 
-import fr.pixelprose.minimax4j.IA;
-import fr.pixelprose.minimax4j.Move;
+import fr.avianey.minimax4j.IA;
+import fr.avianey.minimax4j.Move;
 
 /*
  * This file is part of minimax4j.

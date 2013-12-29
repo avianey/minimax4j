@@ -1,4 +1,4 @@
-package fr.pixelprose.minimax4j;
+package fr.avianey.minimax4j;
 
 import java.util.Collection;
 import java.util.List;

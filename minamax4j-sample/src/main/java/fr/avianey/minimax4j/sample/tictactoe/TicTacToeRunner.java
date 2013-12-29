@@ -1,4 +1,7 @@
-package fr.pixelprose.minimax4j;
+package fr.avianey.minimax4j.sample.tictactoe;
+
+import fr.avianey.minimax4j.IA.Algorithm;
+import fr.avianey.minimax4j.sample.SampleRunner;
 
 /*
  * This file is part of minimax4j.
@@ -21,20 +24,20 @@ package fr.pixelprose.minimax4j;
  */
 
 /**
+ * Run a game between two TicTacToeIA opponent...
  * 
- * Implement this interface to provide several difficulties for your IA implementation.
- * 
- * @author avianey
- *
+ * @author antoine vianey
  */
-public interface Difficulty {
+public class TicTacToeRunner extends SampleRunner<TicTacToeMove> {
 
-    /**
-     * The thinking depth for the decision rule used by the IA.<br/>
-     * Implementation of Difficulty must return a value greater than 0 (&gt;0)
-     * @return
-     *         The thinking depth of the IA.
-     */
-    public int getDepth();
+    public TicTacToeRunner() {
+        // Change the thinking depth value > 0
+        super(new TicTacToeIA(Algorithm.MINIMAX, 2));
+    }
+    
+    public static void main(String[] args) {
+        SampleRunner<TicTacToeMove> runner = new TicTacToeRunner();
+        runner.run();
+    }
     
 }
