@@ -1,11 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0        http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 	<name>minimax4j</name>
 	<groupId>fr.avianey</groupId>
 	<artifactId>minimax4j</artifactId>
     <packaging>jar</packaging>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<description>
 	    Minimax4j is a pure java implementation of the minimax algorithm.
 	    It provides implementation of standard minimax but also provides alpha-beta pruning, negamax or negascout.
@@ -39,7 +39,7 @@
         <url>https://github.com/avianey/minimax4j</url>
         <developerConnection>scm:git:git@github.com/avianey/minimax4j.git</developerConnection>
         <connection>scm:git:git://github.com/avianey/minimax4j.git</connection>
-        <tag>minimax4j-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <build>
