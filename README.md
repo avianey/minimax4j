@@ -3,6 +3,14 @@
 Minimax4j is a JAVA implementation of the [minimax algorithm](http://en.wikipedia.org/wiki/Minimax).  
 It is a simple but complete abstract API that let you concentrate on the evaluation function.
 
+```xml
+<dependency>
+    <groupId>fr.avianey</groupId>
+    <artifactId>minimax4j</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
 ## Samples
 
 Samples are available in the minimax-sample project and provide basic implementations for the following IA :
