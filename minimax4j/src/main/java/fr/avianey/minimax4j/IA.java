@@ -31,8 +31,8 @@ import java.util.List;
  * <li>Reversi</li>
  * <li>Checkers</li>
  * <li>Go</li>
- * <li>Four-in-a-row</li>
- * <li>Tica Tac Toe</li>
+ * <li>Connect Four</li>
+ * <li>Tic Tac Toe</li>
  * <li>...</li>
  * </ul>
  * 
@@ -44,8 +44,8 @@ public abstract class IA<M extends Move> {
     
     private final Algorithm algo;
     
-    private final class IAMoveWrapper {
-        M move;
+    protected final class IAMoveWrapper {
+        public M move;
     }
     
     /**
@@ -102,7 +102,7 @@ public abstract class IA<M extends Move> {
         return wrapper.move;
     }
     
-    private final double minimax(final IAMoveWrapper wrapper, int depth, int DEPTH) {
+    protected double minimax(final IAMoveWrapper wrapper, int depth, int DEPTH) {
         if (depth == DEPTH) {
             return evaluate();
         } else if (isOver()) {
@@ -149,7 +149,7 @@ public abstract class IA<M extends Move> {
         }
     }
     
-    private final double alphabeta(final IAMoveWrapper wrapper, int depth, int DEPTH, double alpha, double beta) {
+    protected double alphabeta(final IAMoveWrapper wrapper, int depth, int DEPTH, double alpha, double beta) {
         if (depth == DEPTH) {
             return evaluate();
         } else if (isOver()) {
@@ -199,7 +199,7 @@ public abstract class IA<M extends Move> {
         }
     }
     
-    private final double negamax(final IAMoveWrapper wrapper, int depth, double alpha, double beta) {
+    protected double negamax(final IAMoveWrapper wrapper, int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
@@ -228,7 +228,7 @@ public abstract class IA<M extends Move> {
         }
     }
     
-    private final double negascout(IAMoveWrapper wrapper, int depth, double alpha, double beta) {
+    protected double negascout(IAMoveWrapper wrapper, int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
