@@ -86,7 +86,7 @@ public abstract class IA<M extends Move> {
         IAMoveWrapper wrapper = new IAMoveWrapper();
         switch (algo) {
         case MINIMAX:
-            minimax(wrapper, 0, getDifficulty().getDepth());
+            minimax(wrapper, getDifficulty().getDepth(), 1);
             break;
         case ALPHA_BETA:
             alphabeta(wrapper, 0, getDifficulty().getDepth(), -maxEvaluateValue(), maxEvaluateValue());
@@ -102,51 +102,30 @@ public abstract class IA<M extends Move> {
         return wrapper.move;
     }
     
-    protected double minimax(final IAMoveWrapper wrapper, int depth, int DEPTH) {
-        if (depth == DEPTH) {
-            return evaluate();
-        } else if (isOver()) {
-            // if depth not reach, must consider who's playing
-            return (((DEPTH - depth) % 2) == 1 ? -1 : 1) * evaluate();
+    protected double minimax(final IAMoveWrapper wrapper, int depth, int signum) {
+        if (depth == 0 || isOver()) {
+            return signum * evaluate();
         }
         M bestMove = null;
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
-            return minimax(null, depth + 1, DEPTH);
+            return minimax(null, depth - 1, -signum);
         }
-        if (depth % 2 == DEPTH % 2) {
-            double score = -maxEvaluateValue();
-            double bestScore = -maxEvaluateValue();
-            for (M move : moves) {
-                makeMove(move);
-                score = minimax(null, depth + 1, DEPTH);
-                unmakeMove(move);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = move;
-                }
+        double score = - signum * maxEvaluateValue();
+        double bestScore = - signum * maxEvaluateValue();
+        for (M move : moves) {
+            makeMove(move);
+            score = minimax(null, depth - 1, -signum);
+            unmakeMove(move);
+            if (signum * (score - bestScore) > 0) {
+                bestScore = score;
+                bestMove = move;
             }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
-            }
-            return bestScore;
-        } else {
-            double score = maxEvaluateValue();
-            double bestScore = maxEvaluateValue();
-            for (M move : moves) {
-                makeMove(move);
-                score = minimax(null, depth + 1, DEPTH);
-                unmakeMove(move);
-                if (score < bestScore) {
-                    bestScore = score;
-                    bestMove = move;
-                }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
-            }
-            return bestScore;
         }
+        if (wrapper != null) {
+            wrapper.move = bestMove;
+        }
+        return bestScore;
     }
     
     protected double alphabeta(final IAMoveWrapper wrapper, int depth, int DEPTH, double alpha, double beta) {
