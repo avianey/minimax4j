@@ -35,7 +35,7 @@ import fr.avianey.minimax4j.Move;
 public abstract class SampleRunner<M extends Move> {
     
     public static interface Listener<M extends Move> {
-        public void onMove(IA<M> ia, M move);
+        public void onMove(IA<M> ia, M move, int turn);
         public void onGameOver(IA<M> ia);
         public void onNoPossibleMove(IA<M> ia);
     }
@@ -53,13 +53,14 @@ public abstract class SampleRunner<M extends Move> {
     
     public void run() {
         M move;
+        int turn = 0;
         while (!ia.isOver()) {
             List<M> moves = ia.getPossibleMoves();
             if (!moves.isEmpty()) {
                 move = ia.getBestMove();
                 ia.makeMove(move);
                 if (listener != null) {
-                    listener.onMove(ia, move);
+                    listener.onMove(ia, move, ++turn);
                 }
             } else {
                 if (listener != null) {

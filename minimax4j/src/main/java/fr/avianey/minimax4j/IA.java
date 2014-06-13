@@ -54,13 +54,27 @@ public abstract class IA<M extends Move> {
      * @author antoine vianey
      */
     public static enum Algorithm {
-        /** The Minimax algorithm (slowest) */
+        /** 
+         * The Minimax algorithm (slowest) 
+         * @see http://en.wikipedia.org/wiki/Minimax
+         **/
         MINIMAX,
-        /** The Mininma algorithm with alpha-beta pruning */
+        /** 
+         * The Mininma algorithm with alpha-beta pruning 
+         * @see http://en.wikipedia.org/wiki/Alpha-beta_pruning
+         **/
         ALPHA_BETA,
-        /** The Negamax algorithm with alpha-beta pruning */
+        /** 
+         * The Negamax algorithm with alpha-beta pruning 
+         * for zero-sum games only.
+         * @see http://en.wikipedia.org/wiki/Negamax
+         **/
         NEGAMAX,
-        /** The Negascout algorithm (fastest) */
+        /** 
+         * The Negascout algorithm (fastest) 
+         * for zero-sum games only.
+         * @see http://en.wikipedia.org/wiki/Negascout
+         **/
         NEGASCOUT;
     }
     
@@ -86,10 +100,10 @@ public abstract class IA<M extends Move> {
         IAMoveWrapper wrapper = new IAMoveWrapper();
         switch (algo) {
         case MINIMAX:
-            minimax(wrapper, 0, getDifficulty().getDepth());
+            minimax(wrapper, getDifficulty().getDepth(), 1);
             break;
         case ALPHA_BETA:
-            alphabeta(wrapper, 0, getDifficulty().getDepth(), -maxEvaluateValue(), maxEvaluateValue());
+            alphabeta(wrapper, getDifficulty().getDepth(), 1, -maxEvaluateValue(), maxEvaluateValue());
             break;
         case NEGAMAX:
             negamax(wrapper, getDifficulty().getDepth(), -maxEvaluateValue(), maxEvaluateValue());
@@ -102,24 +116,49 @@ public abstract class IA<M extends Move> {
         return wrapper.move;
     }
     
-    protected double minimax(final IAMoveWrapper wrapper, int depth, int DEPTH) {
-        if (depth == DEPTH) {
-            return evaluate();
-        } else if (isOver()) {
-            // if depth not reach, must consider who's playing
-            return (((DEPTH - depth) % 2) == 1 ? -1 : 1) * evaluate();
+    /**
+     * Minimax algorithm implementation :
+     * <pre>
+     * function minimax(node, depth, maximizingPlayer)
+     *     if depth = 0 or node is a terminal node
+     *         return the heuristic value of node
+     *     if maximizingPlayer
+     *         bestValue := -&#8734;
+     *         for each child of node
+     *             val := minimax(child, depth - 1, FALSE)
+     *             bestValue := max(bestValue, val)
+     *         return bestValue
+     *     else
+     *         bestValue := +&#8734;
+     *         for each child of node
+     *             val := minimax(child, depth - 1, TRUE)
+     *             bestValue := min(bestValue, val)
+     *         return bestValue
+     * </pre>
+     * 
+     * Initial call for maximizing player
+     * <pre>minimax(origin, depth, TRUE)</pre>
+     * 
+     * @param wrapper
+     * @param depth
+     * @param DEPTH
+     * @return
+     */
+    protected double minimax(final IAMoveWrapper wrapper, int depth, int who) {
+        if (depth == 0 || isOver()) {
+            return who * evaluate();
         }
         M bestMove = null;
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
-            return minimax(null, depth + 1, DEPTH);
+            return minimax(null, depth - 1, -who);
         }
-        if (depth % 2 == DEPTH % 2) {
+        if (who > 0) {
             double score = -maxEvaluateValue();
             double bestScore = -maxEvaluateValue();
             for (M move : moves) {
                 makeMove(move);
-                score = minimax(null, depth + 1, DEPTH);
+                score = minimax(null, depth - 1, -who);
                 unmakeMove(move);
                 if (score > bestScore) {
                     bestScore = score;
@@ -135,7 +174,7 @@ public abstract class IA<M extends Move> {
             double bestScore = maxEvaluateValue();
             for (M move : moves) {
                 makeMove(move);
-                score = minimax(null, depth + 1, DEPTH);
+                score = minimax(null, depth - 1, -who);
                 unmakeMove(move);
                 if (score < bestScore) {
                     bestScore = score;
@@ -149,23 +188,49 @@ public abstract class IA<M extends Move> {
         }
     }
     
-    protected double alphabeta(final IAMoveWrapper wrapper, int depth, int DEPTH, double alpha, double beta) {
-        if (depth == DEPTH) {
-            return evaluate();
-        } else if (isOver()) {
-            // if depth not reach, must consider who's playing
-            return (((DEPTH - depth) % 2) == 1 ? -1 : 1) * evaluate();
+    /**
+     * Minimax with alpha beta algorithm :
+     * <pre>
+     * function alphabeta(node, depth, &#945;, &#946;, maximizingPlayer)
+	 *     if depth = 0 or node is a terminal node
+	 *         return the heuristic value of node
+	 *     if maximizingPlayer
+	 *         for each child of node
+	 *             &#945; := max(&#945;, alphabeta(child, depth - 1, &#945;, &#946;, FALSE))
+	 *             if &#946; <= &#945;
+	 *                 break (* &#946; cut-off *)
+	 *         return a
+	 *     else
+	 *         for each child of node
+	 *             &#946; := min(&#946;, alphabeta(child, depth - 1, &#945;, &#946;, TRUE))
+	 *             if &#946; <= &#945;
+	 *                 break (* &#945; cut-off *)
+	 *         return &#946;
+	 * </pre>
+	 * Initial call for maximizing player
+     * <pre>alphabeta(origin, depth, -8, +8, TRUE)</pre>
+     * 
+     * @param wrapper
+     * @param depth
+     * @param who
+     * @param alpha
+     * @param beta
+     * @return
+     */
+    protected double alphabeta(final IAMoveWrapper wrapper, int depth, int who, double alpha, double beta) {
+        if (depth == 0 || isOver()) {
+            return who * evaluate();
         }
         M bestMove = null;
         double score;
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
-            return alphabeta(null, depth + 1, DEPTH, alpha, beta);
+            return alphabeta(null, depth - 1, -who, alpha, beta);
         }
-        if (depth % 2 == DEPTH % 2) {
+        if (who > 0) {
             for (M move : moves) {
                 makeMove(move);
-                score = alphabeta(null, depth + 1, DEPTH, alpha, beta);
+                score = alphabeta(null, depth - 1, -who, alpha, beta);
                 unmakeMove(move);
                 if (score > alpha) {
                     alpha = score;
@@ -182,7 +247,7 @@ public abstract class IA<M extends Move> {
         } else {
             for (M move : moves) {
                 makeMove(move);
-                score = alphabeta(null, depth + 1, DEPTH, alpha, beta);
+                score = alphabeta(null, depth - 1, -who, alpha, beta);
                 unmakeMove(move);
                 if (score < beta) {
                     beta = score;
@@ -199,6 +264,39 @@ public abstract class IA<M extends Move> {
         }
     }
     
+    /**
+     * Negamax algorithm :
+     * <pre>
+     * function negamax(node, depth, color)
+     *     if depth = 0 or node is a terminal node
+     *         return color * the heuristic value of node
+     *     bestValue := -&#8734;
+     *     foreach child of node
+     *         val := -negamax(child, depth - 1, -color)
+     *         bestValue := max( bestValue, val )
+     *     return bestValue
+     * </pre>
+     * 
+     * Initial call for Player A's root node
+     * <pre>
+     * rootNegamaxValue := negamax( rootNode, depth, 1)
+     * rootMinimaxValue := rootNegamaxValue
+     * </pre>
+     * 
+     * Initial call for Player B's root node
+     * <pre>
+     * rootNegamaxValue := negamax( rootNode, depth, -1)
+     * rootMinimaxValue := -rootNegamaxValue
+     * </pre>
+     * 
+     * This implementation use alpha-beta cut-offs.
+     * 
+     * @param wrapper
+     * @param depth
+     * @param alpha
+     * @param beta
+     * @return
+     */
     protected double negamax(final IAMoveWrapper wrapper, int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
@@ -228,6 +326,31 @@ public abstract class IA<M extends Move> {
         }
     }
     
+    /**
+     * Negascout PVS algorithm :
+     * <pre>
+     * function pvs(node, depth, &#945;, &#946;, color)
+     *     if node is a terminal node or depth = 0
+     *         return color x the heuristic value of node
+     *     for each child of node
+     *         if child is not first child
+     *             score := -pvs(child, depth-1, -&#945;-1, -&#945;, -color)       (* search with a null window *)
+     *             if &#945; < score < &#946;                                      (* if it failed high,
+     *                 score := -pvs(child, depth-1, -&#946;, -score, -color)         do a full re-search *)
+     *         else
+     *             score := -pvs(child, depth-1, -&#946;, -&#945;, -color)
+     *         &#945; := max(&#945;, score)
+     *         if &#945; >= &#946;
+     *             break                                            (* beta cut-off *)
+     *     return &#945;
+     * </pre>
+     * 
+     * @param wrapper
+     * @param depth
+     * @param alpha
+     * @param beta
+     * @return
+     */
     protected double negascout(IAMoveWrapper wrapper, int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();

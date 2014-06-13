@@ -46,12 +46,15 @@ public class TicTacToeMove implements Move {
     public int getX() {
         return x;
     }
+    
     public void setX(int x) {
         this.x = x;
     }
+    
     public int getY() {
         return y;
     }
+    
     public void setY(int y) {
         this.y = y;
     }
@@ -62,6 +65,10 @@ public class TicTacToeMove implements Move {
 
     public void setPlayer(int player) {
         this.player = player;
+    }
+    
+    public String toString() {
+    	return (player == TicTacToeIA.PLAYER_O ? "O" : "X") + " (" + x + ";" + y + ")";
     }
     
 }
