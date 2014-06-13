@@ -21,6 +21,7 @@ package fr.avianey.minimax4j;
  */
 
 /**
+ * 
  * Implement this interface to describe a Move in your game.<br>
  * A typical implementation for a Chess game would be :
  * <ul>
@@ -37,5 +38,6 @@ package fr.avianey.minimax4j;
  * 
  * @author antoine vianey
  * @see IA#unmakeMove(Move)
+ *
  */
 public interface Move {}

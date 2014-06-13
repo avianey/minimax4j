@@ -1,17 +1,11 @@
 package fr.avianey.minimax4j.ext;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
-
-import javax.sound.midi.VoiceStatus;
 
 import fr.avianey.minimax4j.IA;
 import fr.avianey.minimax4j.Move;
-import fr.avianey.minimax4j.Transposition;
 
 /**
  * An {@link IA} backed by a <a href="http://en.wikipedia.org/wiki/Transposition_table">transposition table</a>
@@ -22,89 +16,32 @@ import fr.avianey.minimax4j.Transposition;
  * @param <M> the {@link Move} implementation
  * @param <T> the transposition {@link Object}
  * @param <G> the transposition group. 
- * @see Transposition
+ * @see #getGroup()
  */
-public abstract class TranspositionTableBackedIA<M extends Move, T extends Transposition, G extends Comparable<G>> extends IA<M> {
-	
-	private static abstract class TranspositionTableFactory<X> {
-		abstract Map<X, Double> newTransposition();
-	}
+// TODO : abstract Transposition type to handle symetric game of perfect informations
+// in such game evA = -evB for the same position so let store 1 or -1 as a coeff in the transposition that does not take effect in the hash or equals
+public abstract class TranspositionTableBackedIA<M extends Move, T, G extends Comparable<G>> extends IA<M> {
     
-    private final TreeMap<G, Map<T, Double>> transpositionTableMap;
-    private final TranspositionTableFactory<T> transpositionTableFactory;
+    private final Map<T, Double> transpositionTable;
 
     public TranspositionTableBackedIA() {
         super();
-        transpositionTableMap = initTranspositionTableMap();
-        transpositionTableFactory = new TranspositionTableFactory<T>() {
-			@Override
-			Map<T, Double> newTransposition() {
-				return new HashMap<T, Double>();
-			}
-        };
+        this.transpositionTable = new HashMap<T, Double>();
     }
 
-	public TranspositionTableBackedIA(Algorithm algo) {
+    public TranspositionTableBackedIA(Algorithm algo) {
         super(algo);
-        transpositionTableMap = initTranspositionTableMap();
-        transpositionTableFactory = new TranspositionTableFactory<T>() {
-			@Override
-			Map<T, Double> newTransposition() {
-				return new HashMap<T, Double>();
-			}
-        };
+        this.transpositionTable = new HashMap<T, Double>();
     }
 
-    public TranspositionTableBackedIA(Algorithm algo, final int initialCapacity) {
+    public TranspositionTableBackedIA(Algorithm algo, int initialCapacity) {
         super(algo);
-        transpositionTableMap = initTranspositionTableMap();
-        transpositionTableFactory = new TranspositionTableFactory<T>() {
-			@Override
-			Map<T, Double> newTransposition() {
-				return new HashMap<T, Double>(initialCapacity);
-			}
-        };
+        this.transpositionTable = new HashMap<T, Double>(initialCapacity);
     }
 
-    public TranspositionTableBackedIA(Algorithm algo, final int initialCapacity, final float loadFactor) {
+    public TranspositionTableBackedIA(Algorithm algo, int initialCapacity, float loadFactor) {
         super(algo);
-        transpositionTableMap = initTranspositionTableMap();
-        transpositionTableFactory = new TranspositionTableFactory<T>() {
-			@Override
-			Map<T, Double> newTransposition() {
-				return new HashMap<T, Double>(initialCapacity, loadFactor);
-			}
-        };
-    }
-
-    @SuppressWarnings("unchecked")
-	private TreeMap<G, Map<T, Double>> initTranspositionTableMap() {
-    	Class<G> cls = (Class<G>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[2];
-        if (cls.isAssignableFrom(Comparable.class)) {
-        	// the transposition Group type is Comparable
-        	return new TreeMap<G, Map<T,Double>>();
-        } else if (cls.isAssignableFrom(Void.class)) {
-        	// no transposition Group required
-        	// use everything-is-equal Comparator
-        	return new TreeMap<G, Map<T,Double>>(new Comparator<G>() {
-				@Override
-				public int compare(G o1, G o2) {
-					return 0;
-				}
-        	});
-        } else {
-        	throw new IllegalArgumentException("The transposition group type : " + cls.getSimpleName() + " is neither Void nor implement the java.lang.Comparable interface.");
-        }
-	}
-
-    @Override
-    public M getBestMove() {
-    	G currentGroup = getGroup();
-    	if (currentGroup != null) {
-            // evict unnecessary transpositions
-    		transpositionTableMap.headMap(currentGroup).clear();
-    	}
-        return super.getBestMove();
+        this.transpositionTable = new HashMap<T, Double>(initialCapacity, loadFactor);
     }
 
     /**
@@ -139,6 +76,13 @@ public abstract class TranspositionTableBackedIA<M extends Move, T extends Trans
         return null;
     }
     
+    
+    
+    
+    
+    
+
+    
     protected final double minimax(final IAMoveWrapper wrapper, int depth, int DEPTH) {
         if (depth == DEPTH) {
             return evaluate();
@@ -157,18 +101,13 @@ public abstract class TranspositionTableBackedIA<M extends Move, T extends Trans
             for (M move : moves) {
                 makeMove(move);
                 T t = getTransposition();
-                Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-                if (transpositionTable != null && transpositionTable.containsKey(t)) {
+                if (transpositionTable.containsKey(t)) {
                     // transposition found
                     // we can stop here as we already know the value
                     // of the evaluation function
                     score = transpositionTable.get(t);
                 } else {
                     score = minimax(null, depth + 1, DEPTH);
-                    if (transpositionTable == null) {
-                    	transpositionTable = transpositionTableFactory.newTransposition();
-                    	transpositionTableMap.put(getGroup(), transpositionTable);
-                    }
                     transpositionTable.put(t, score);
                 }
                 unmakeMove(move);
@@ -187,18 +126,13 @@ public abstract class TranspositionTableBackedIA<M extends Move, T extends Trans
             for (M move : moves) {
                 makeMove(move);
                 T t = getTransposition();
-                Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-                if (transpositionTable != null && transpositionTable.containsKey(t)) {
+                if (transpositionTable.containsKey(t)) {
                     // transposition found
                     // we can stop here as we already know the value
                     // of the evaluation function
                     score = transpositionTable.get(t);
                 } else {
                     score = minimax(null, depth + 1, DEPTH);
-                    if (transpositionTable == null) {
-                    	transpositionTable = transpositionTableFactory.newTransposition();
-                    	transpositionTableMap.put(getGroup(), transpositionTable);
-                    }
                     transpositionTable.put(t, score);
                 }
                 unmakeMove(move);
