@@ -24,7 +24,8 @@ import java.util.List;
  */
 
 /**
- * Abstract class implementing minimax and derivated decision rules for two-person zero-sum games of perfect information.
+ * Abstract class implementing minimax and derivated decision rules for two-person 
+ * <a href="http://en.wikipedia.org/wiki/Zero-sum_game">zero-sum</a> games of perfect information.
  * Extend this class to implement IA for several games, such as :
  * <ul>
  * <li>Chess</li>
@@ -65,14 +66,13 @@ public abstract class IA<M extends Move> {
          **/
         ALPHA_BETA,
         /** 
-         * The Negamax algorithm with alpha-beta pruning 
-         * for zero-sum games only.
+         * The Negamax algorithm with alpha-beta pruning
          * @see http://en.wikipedia.org/wiki/Negamax
          **/
         NEGAMAX,
         /** 
-         * The Negascout algorithm (fastest) 
-         * for zero-sum games only.
+         * The Negascout algorithm (fastest)<br/>
+         * Also called Principal Variation Search
          * @see http://en.wikipedia.org/wiki/Negascout
          **/
         NEGASCOUT;

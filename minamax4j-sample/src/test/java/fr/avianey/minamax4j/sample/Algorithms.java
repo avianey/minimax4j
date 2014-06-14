@@ -66,6 +66,9 @@ public class Algorithms {
         SampleRunner<TicTacToeMove> negascout = new SampleRunner<TicTacToeMove>(new TicTacToeIA(Algorithm.NEGASCOUT, depth)) {};
         // transposition Table backed IA
         SampleRunner<TicTacToeMove> minimaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionTableBackedIA(Algorithm.MINIMAX, depth)) {};
+        SampleRunner<TicTacToeMove> alphabetaTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionTableBackedIA(Algorithm.ALPHA_BETA, depth)) {};
+        SampleRunner<TicTacToeMove> negamaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionTableBackedIA(Algorithm.NEGAMAX, depth)) {};
+        SampleRunner<TicTacToeMove> negascoutTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionTableBackedIA(Algorithm.NEGASCOUT, depth)) {};
         
         final List<TicTacToeMove> minimaxMoves = new ArrayList<TicTacToeMove>(9);
         
@@ -122,6 +125,15 @@ public class Algorithms {
         moves.clear();
         moves.addAll(minimaxMoves);
         minimaxTransposition.run();
+        moves.clear();
+        moves.addAll(minimaxMoves);
+        alphabetaTransposition.run();
+        moves.clear();
+        moves.addAll(minimaxMoves);
+        negamaxTransposition.run();
+        moves.clear();
+        moves.addAll(minimaxMoves);
+        negascoutTransposition.run();
     }
     
 }
