@@ -1,6 +1,6 @@
 package fr.avianey.minimax4j.sample.tictactoe;
 
-import fr.avianey.minimax4j.Transposition;
+import fr.avianey.minimax4j.transposition.Transposition;
 
 public class TicTacToeTransposition implements Transposition {
 

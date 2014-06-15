@@ -53,7 +53,7 @@
                     <configuration>
                         <mavenExecutorId>forked-path</mavenExecutorId>
                         <useReleaseProfile>false</useReleaseProfile>
-                        <arguments>${arguments} -Psonatype-oss-release</arguments>
+                        <arguments>-Psonatype-oss-release</arguments>
                     </configuration>
                 </plugin>
             </plugins>
@@ -111,9 +111,9 @@
     
     <!-- 
     mvn clean release:clean -s settings.xml
-    mvn release:prepare -s settings.xml -Darguments=
+    mvn release:prepare -s settings.xml
     manual push
-    mvn release:perform -s settings.xml -Darguments=
+    mvn release:perform -s settings.xml
     -->
     <profiles>
         <profile>

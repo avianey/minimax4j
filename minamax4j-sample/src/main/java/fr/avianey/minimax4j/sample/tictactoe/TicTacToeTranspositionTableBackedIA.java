@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.avianey.minimax4j.Difficulty;
-import fr.avianey.minimax4j.ext.TranspositionTableBackedIA;
+import fr.avianey.minimax4j.transposition.TranspositionIA;
 
 /*
  * This file is part of minimax4j.
@@ -31,7 +31,7 @@ import fr.avianey.minimax4j.ext.TranspositionTableBackedIA;
  * 
  * @author antoine vianey
  */
-public class TicTacToeTranspositionTableBackedIA extends TranspositionTableBackedIA<TicTacToeMove, TicTacToeTransposition, Integer> {
+public class TicTacToeTranspositionTableBackedIA extends TranspositionIA<TicTacToeMove, TicTacToeTransposition, Integer> {
 
     static final int FREE       = 0;
     static final int PLAYER_X   = 1; // X : 01
