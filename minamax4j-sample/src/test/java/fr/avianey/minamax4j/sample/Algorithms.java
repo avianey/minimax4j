@@ -18,7 +18,7 @@ import fr.avianey.minimax4j.sample.SampleRunner;
 import fr.avianey.minimax4j.sample.SampleRunner.Listener;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeIA;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeMove;
-import fr.avianey.minimax4j.sample.tictactoe.TicTacToeTranspositionTableBackedIA;
+import fr.avianey.minimax4j.sample.tictactoe.TicTacToeTranspositionIA;
 
 /**
  * Check for every sample game that the same game is played exactly the same for each Algorithm :<br/>
@@ -65,10 +65,10 @@ public class Algorithms {
         SampleRunner<TicTacToeMove> negamax = new SampleRunner<TicTacToeMove>(new TicTacToeIA(Algorithm.NEGAMAX, depth)) {};
         SampleRunner<TicTacToeMove> negascout = new SampleRunner<TicTacToeMove>(new TicTacToeIA(Algorithm.NEGASCOUT, depth)) {};
         // transposition Table backed IA
-        SampleRunner<TicTacToeMove> minimaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionTableBackedIA(Algorithm.MINIMAX, depth)) {};
-        SampleRunner<TicTacToeMove> alphabetaTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionTableBackedIA(Algorithm.ALPHA_BETA, depth)) {};
-        SampleRunner<TicTacToeMove> negamaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionTableBackedIA(Algorithm.NEGAMAX, depth)) {};
-        SampleRunner<TicTacToeMove> negascoutTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionTableBackedIA(Algorithm.NEGASCOUT, depth)) {};
+        SampleRunner<TicTacToeMove> minimaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionIA(Algorithm.MINIMAX, depth)) {};
+        SampleRunner<TicTacToeMove> alphabetaTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionIA(Algorithm.ALPHA_BETA, depth)) {};
+        SampleRunner<TicTacToeMove> negamaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionIA(Algorithm.NEGAMAX, depth)) {};
+        SampleRunner<TicTacToeMove> negascoutTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionIA(Algorithm.NEGASCOUT, depth)) {};
         
         final List<TicTacToeMove> minimaxMoves = new ArrayList<TicTacToeMove>(9);
         
