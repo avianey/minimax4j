@@ -31,10 +31,10 @@ import java.util.TreeMap;
  * along with minimax4j. If not, see <http://www.gnu.org/licenses/lgpl.html>
  */
 
-
 /**
  * An {@link IA} backed by a <a href="http://en.wikipedia.org/wiki/Transposition_table">transposition table</a>
- * to speed up the search of the game tree.
+ * to speed up the search of the game tree.<br/>
+ * The transposition table will not be serialized with this instance.
  * 
  * @author antoine vianey
  *
@@ -47,41 +47,49 @@ import java.util.TreeMap;
 // TODO Custom TranspositionTableFactory
 public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>> extends IA<M> {
 	
-	private static abstract class TranspositionTableFactory<X> {
-		abstract Map<X, Double> newTransposition();
+	public static interface TranspositionTableFactory<X> {
+		Map<X, Double> newTransposition();
 	}
     
-    private final TreeMap<G, Map<T, Double>> transpositionTableMap;
-    private final TranspositionTableFactory<T> transpositionTableFactory;
+    private final transient TreeMap<G, Map<T, Double>> transpositionTableMap;
+    private final transient TranspositionTableFactory<T> transpositionTableFactory;
 
     public TranspositionIA() {
-        super();
-        transpositionTableMap = initTranspositionTableMap();
-        transpositionTableFactory = new TranspositionTableFactory<T>() {
+        this(new TranspositionTableFactory<T>() {
 			@Override
-			Map<T, Double> newTransposition() {
+            public Map<T, Double> newTransposition() {
 				return new HashMap<T, Double>();
 			}
-        };
+        });
     }
 
-	public TranspositionIA(Algorithm algo) {
+    public TranspositionIA(TranspositionTableFactory<T> transpositionTableFactory) {
+        super();
+        this.transpositionTableMap = initTranspositionTableMap();
+        this.transpositionTableFactory = transpositionTableFactory;
+    }
+
+    public TranspositionIA(Algorithm algo) {
+        this(algo, new TranspositionTableFactory<T>() {
+            @Override
+            public Map<T, Double> newTransposition() {
+                return new HashMap<T, Double>();
+            }
+        });
+    }
+
+    public TranspositionIA(Algorithm algo, TranspositionTableFactory<T> transpositionTableFactory) {
         super(algo);
-        transpositionTableMap = initTranspositionTableMap();
-        transpositionTableFactory = new TranspositionTableFactory<T>() {
-			@Override
-			Map<T, Double> newTransposition() {
-				return new HashMap<T, Double>();
-			}
-        };
+        this.transpositionTableMap = initTranspositionTableMap();
+        this.transpositionTableFactory = transpositionTableFactory;
     }
 
     public TranspositionIA(Algorithm algo, final int initialCapacity) {
         super(algo);
-        transpositionTableMap = initTranspositionTableMap();
-        transpositionTableFactory = new TranspositionTableFactory<T>() {
+        this.transpositionTableMap = initTranspositionTableMap();
+        this.transpositionTableFactory = new TranspositionTableFactory<T>() {
 			@Override
-			Map<T, Double> newTransposition() {
+			public Map<T, Double> newTransposition() {
 				return new HashMap<T, Double>(initialCapacity);
 			}
         };
@@ -89,10 +97,10 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
 
     public TranspositionIA(Algorithm algo, final int initialCapacity, final float loadFactor) {
         super(algo);
-        transpositionTableMap = initTranspositionTableMap();
-        transpositionTableFactory = new TranspositionTableFactory<T>() {
+        this.transpositionTableMap = initTranspositionTableMap();
+        this.transpositionTableFactory = new TranspositionTableFactory<T>() {
 			@Override
-			Map<T, Double> newTransposition() {
+			public Map<T, Double> newTransposition() {
 				return new HashMap<T, Double>(initialCapacity, loadFactor);
 			}
         };
@@ -125,6 +133,10 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
         }
 	}
 
+    public TreeMap<G, Map<T, Double>> getTranspositionTableMap() {
+        return this.transpositionTableMap;
+    }
+    
     @Override
     public M getBestMove() {
     	if (clearGroupsBeforeSearch()) {
@@ -138,7 +150,8 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
     }
     
     /**
-     * Set it to false to stop the use of the transposition table
+     * Set it to false to stop the use of the transposition table<br/>
+     * Default to true.
      * @return
      */
     public boolean useTranspositionTable() {
@@ -155,7 +168,7 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
     }
     
     /**
-     * Whether or not the remove useless transposition before the tree exploration.
+     * Whether or not the remove useless transposition before the tree exploration.<br/>
      * Default to false.
      * @return
      */
@@ -164,7 +177,7 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
     }
     
     /**
-     * Whether or not the remove useless transposition after the tree exploration.
+     * Whether or not the remove useless transposition after the tree exploration.<br/>
      * Default to false.
      * @return
      */
@@ -173,8 +186,8 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
     }
     
     /**
-     * Programmaticalty reset the content of the transposition table.
-     * The prefered way to free memory is to use the grouping functionnality.
+     * Programmatically reset the content of the transposition table.
+     * The preferred way to free memory is to use the grouping functionality.
      * 
      * @see #getGroup()
      */

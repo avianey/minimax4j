@@ -7,7 +7,7 @@ import java.util.List;
  * This file is part of minimax4j.
  * <https://github.com/avianey/minimax4j>
  *  
- * Copyright (C) 2012 Antoine Vianey
+ * Copyright (C) 2012, 2013, 2014 Antoine Vianey
  * 
  * minimax4j is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
