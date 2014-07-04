@@ -44,7 +44,6 @@ import java.util.TreeMap;
  * @see Transposition
  */
 // TODO Enhanced transposition cutoffs
-// TODO Custom TranspositionTableFactory
 public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>> extends IA<M> {
 	
 	public static interface TranspositionTableFactory<X> {
@@ -151,14 +150,13 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
     
     /**
      * Set it to false to stop the use of the transposition table<br/>
-     * Default to true.
+     * Default is true.
      * @return
      */
     public boolean useTranspositionTable() {
     	return true;
     }
     
-    // TODO : getBestMove() does not play the move... so the best move group won't be cleared
     private final void clearGroups(G currentGroup) {
     	if (currentGroup != null) {
     		// free memory :
@@ -244,281 +242,99 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
      *=================*/
     
     @Override
-    protected double minimax(final IAMoveWrapper wrapper, int depth, int who) {
-    	if (!useTranspositionTable()) {
-    		// rely on default algorithm
-    		return super.minimax(wrapper, depth, who);
-    	}
-        if (depth == 0 || isOver()) {
-            return who * evaluate();
-        }
-        M bestMove = null;
-        Collection<M> moves = getPossibleMoves();
-        if (moves.isEmpty()) {
-            return minimax(null, depth - 1, -who);
-        }
-        if (who > 0) {
-            double score = -maxEvaluateValue();
-            double bestScore = -maxEvaluateValue();
-            for (M move : moves) {
-                makeMove(move);
-                T t = getTransposition();
-                Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-                if (transpositionTable != null && transpositionTable.containsKey(t)) {
-                    // transposition found
-                    // we can stop here as we already know the value
-                    // of the evaluation function
-                    score = transpositionTable.get(t);
-                } else {
-                    score = minimax(null, depth - 1, -who);
-                    if (transpositionTable == null) {
-                    	transpositionTable = transpositionTableFactory.newTransposition();
-                    	transpositionTableMap.put(getGroup(), transpositionTable);
-                    }
-                    // save transposition
-                    for (T st : getSymetricTranspositions()) {
-                        transpositionTable.put(st, score);
-                    }
-                }
-                unmakeMove(move);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = move;
-                }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
-            }
-            return bestScore;
+    protected double minimaxScore(int depth, int who) {
+    	double score = 0;
+    	T t = getTransposition();
+        Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
+        if (transpositionTable != null && transpositionTable.containsKey(t)) {
+            // transposition found
+            // we can stop here as we already know the value
+            // of the evaluation function
+            score = who * transpositionTable.get(t);
         } else {
-            double score = maxEvaluateValue();
-            double bestScore = maxEvaluateValue();
-            for (M move : moves) {
-                makeMove(move);
-                T t = getTransposition();
-                Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-                if (transpositionTable != null && transpositionTable.containsKey(t)) {
-                    // transposition found
-                    // we can stop here as we already know the value
-                    // of the evaluation function
-                    score = -transpositionTable.get(t);
-                } else {
-                    score = minimax(null, depth - 1, -who);
-                    if (transpositionTable == null) {
-                    	transpositionTable = transpositionTableFactory.newTransposition();
-                    	transpositionTableMap.put(getGroup(), transpositionTable);
-                    }
-                    // save transposition
-                    for (T st : getSymetricTranspositions()) {
-                        transpositionTable.put(st, -score);
-                    }
-                }
-                unmakeMove(move);
-                if (score < bestScore) {
-                    bestScore = score;
-                    bestMove = move;
-                }
+            score = super.minimaxScore(depth, who);
+            if (transpositionTable == null) {
+            	transpositionTable = transpositionTableFactory.newTransposition();
+            	transpositionTableMap.put(getGroup(), transpositionTable);
             }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
+            // save transposition
+            for (T st : getSymetricTranspositions()) {
+                transpositionTable.put(st, who * score);
             }
-            return bestScore;
         }
+        return score;
     }
 
     @Override
-    protected double alphabeta(final IAMoveWrapper wrapper, int depth, int who, double alpha, double beta) {
-    	if (!useTranspositionTable()) {
-    		// rely on default algorithm
-    		return super.alphabeta(wrapper, depth, who, alpha, beta);
-    	}
-        if (depth == 0 || isOver()) {
-            return who * evaluate();
-        }
-        M bestMove = null;
-        double score;
-        Collection<M> moves = getPossibleMoves();
-        if (moves.isEmpty()) {
-            return alphabeta(null, depth - 1, -who, alpha, beta);
-        }
-        if (who > 0) {
-            for (M move : moves) {
-                makeMove(move);
-                T t = getTransposition();
-                Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-                if (transpositionTable != null && transpositionTable.containsKey(t)) {
-                    // transposition found
-                    // we can stop here as we already know the value
-                    // of the evaluation function
-                    score = transpositionTable.get(t);
-                } else {
-                    score = alphabeta(null, depth - 1, -who, alpha, beta);
-                    if (transpositionTable == null) {
-                        transpositionTable = transpositionTableFactory.newTransposition();
-                        transpositionTableMap.put(getGroup(), transpositionTable);
-                    }
-                    // save transposition
-                    for (T st : getSymetricTranspositions()) {
-                        transpositionTable.put(st, score);
-                    }
-                }
-                unmakeMove(move);
-                if (score > alpha) {
-                    alpha = score;
-                    bestMove = move;
-                    if (alpha >= beta) {
-                        break;
-                    }
-                }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
-            }
-            return alpha;
+    protected double alphabetaScore(int depth, int who, double alpha, double beta) {
+    	double score = 0;
+        T t = getTransposition();
+        Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
+        if (transpositionTable != null && transpositionTable.containsKey(t)) {
+            // transposition found
+            // we can stop here as we already know the value
+            // of the evaluation function
+            score = who * transpositionTable.get(t);
         } else {
-            for (M move : moves) {
-                makeMove(move);
-                T t = getTransposition();
-                Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-                if (transpositionTable != null && transpositionTable.containsKey(t)) {
-                    // transposition found
-                    // we can stop here as we already know the value
-                    // of the evaluation function
-                    score = -transpositionTable.get(t);
-                } else {
-                    score = alphabeta(null, depth - 1, -who, alpha, beta);
-                    if (transpositionTable == null) {
-                        transpositionTable = transpositionTableFactory.newTransposition();
-                        transpositionTableMap.put(getGroup(), transpositionTable);
-                    }
-                    // save transposition
-                    for (T st : getSymetricTranspositions()) {
-                        transpositionTable.put(st, -score);
-                    }
-                }
-                unmakeMove(move);
-                if (score < beta) {
-                    beta = score;
-                    bestMove = move;
-                    if (alpha >= beta) {
-                        break;
-                    }
-                }
+            score = super.alphabetaScore(depth, who, alpha, beta);
+            if (transpositionTable == null) {
+                transpositionTable = transpositionTableFactory.newTransposition();
+                transpositionTableMap.put(getGroup(), transpositionTable);
             }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
+            // save transposition
+            for (T st : getSymetricTranspositions()) {
+                transpositionTable.put(st, who * score);
             }
-            return beta;
         }
+        return score;
     }
 
     @Override
-    protected double negamax(final IAMoveWrapper wrapper, int depth, double alpha, double beta) {
-    	if (!useTranspositionTable()) {
-    		// rely on default algorithm
-    		return super.negamax(wrapper, depth, alpha, beta);
-    	}
-        if (depth == 0 || isOver()) {
-            return evaluate();
-        }
-        M bestMove = null;
-        Collection<M> moves = getPossibleMoves();
-        if (moves.isEmpty()) {
-            return -negamax(null, depth - 1, -beta, -alpha);
+    protected double negamaxScore(int depth, double alpha, double beta) {
+    	double score = 0;
+        T t = getTransposition();
+        Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
+        if (transpositionTable != null && transpositionTable.containsKey(t)) {
+            // transposition found
+            // we can stop here as we already know the value
+            // of the evaluation function
+            score = transpositionTable.get(t);
         } else {
-            double score = -maxEvaluateValue();
-            for (M move : moves) {
-                makeMove(move);
-                T t = getTransposition();
-                Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-                if (transpositionTable != null && transpositionTable.containsKey(t)) {
-                    // transposition found
-                    // we can stop here as we already know the value
-                    // of the evaluation function
-                    score = transpositionTable.get(t);
-                } else {
-                    score = -negamax(null, depth - 1, -beta, -alpha);
-                    if (transpositionTable == null) {
-                        transpositionTable = transpositionTableFactory.newTransposition();
-                        transpositionTableMap.put(getGroup(), transpositionTable);
-                    }
-                    // save transposition
-                    for (T st : getSymetricTranspositions()) {
-                        transpositionTable.put(st, score);
-                    }
-                }
-                unmakeMove(move);
-                if (score > alpha) {
-                    alpha = score;
-                    bestMove = move;
-                    if (alpha >= beta) {
-                        break;
-                    }
-                }
+            score = super.negamaxScore(depth, alpha, beta);
+            if (transpositionTable == null) {
+                transpositionTable = transpositionTableFactory.newTransposition();
+                transpositionTableMap.put(getGroup(), transpositionTable);
             }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
+            // save transposition
+            for (T st : getSymetricTranspositions()) {
+                transpositionTable.put(st, score);
             }
-            return alpha;
         }
+        return score;
     }
     
     @Override
-    protected double negascout(IAMoveWrapper wrapper, int depth, double alpha, double beta) {
-    	if (!useTranspositionTable()) {
-    		// rely on default algorithm
-    		return super.negascout(wrapper, depth, alpha, beta);
-    	}
-        if (depth == 0 || isOver()) {
-            return evaluate();
-        }
-        List<M> moves = getPossibleMoves();
-        double b = beta;
-        M bestMove = null;
-        if (moves.isEmpty()) {
-            return -negascout(null, depth - 1, -beta, -alpha);
+    protected double negascoutScore(boolean first, int depth, double alpha, double beta, double b) {
+    	double score = 0;
+        T t = getTransposition();
+        Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
+        if (transpositionTable != null && transpositionTable.containsKey(t)) {
+            // transposition found
+            // we can stop here as we already know the value
+            // of the evaluation function
+            score = transpositionTable.get(t);
         } else {
-            double score;
-            boolean first = true;
-            for (M move : moves) {
-                makeMove(move);
-                T t = getTransposition();
-                Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-                if (transpositionTable != null && transpositionTable.containsKey(t)) {
-                    // transposition found
-                    // we can stop here as we already know the value
-                    // of the evaluation function
-                    score = transpositionTable.get(t);
-                } else {
-                    score = -negascout(null, depth - 1, -b, -alpha);
-                    if (!first && alpha < score && score < beta) {
-                        score = -negascout(null, depth - 1, -beta, -alpha);
-                    }
-                    if (transpositionTable == null) {
-                        transpositionTable = transpositionTableFactory.newTransposition();
-                        transpositionTableMap.put(getGroup(), transpositionTable);
-                    }
-                    // save transposition
-                    for (T st : getSymetricTranspositions()) {
-                        transpositionTable.put(st, score);
-                    }
-                }
-                unmakeMove(move);
-                if (score > alpha) {
-                    alpha = score;
-                    bestMove = move;
-                    if (alpha >= beta) {
-                        break;
-                    }
-                }
-                b = alpha + 1;
-                first = false;
+            score = super.negascoutScore(first, depth, alpha, beta, b);
+            if (transpositionTable == null) {
+                transpositionTable = transpositionTableFactory.newTransposition();
+                transpositionTableMap.put(getGroup(), transpositionTable);
             }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
+            // save transposition
+            for (T st : getSymetricTranspositions()) {
+                transpositionTable.put(st, score);
             }
-            return alpha;
         }
+        return score;
     }
     
 }

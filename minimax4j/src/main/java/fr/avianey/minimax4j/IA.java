@@ -144,7 +144,7 @@ public abstract class IA<M extends Move> {
      * @param DEPTH
      * @return
      */
-    protected double minimax(final IAMoveWrapper wrapper, int depth, int who) {
+    private final double minimax(final IAMoveWrapper wrapper, int depth, int who) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
@@ -158,7 +158,7 @@ public abstract class IA<M extends Move> {
             double bestScore = -maxEvaluateValue();
             for (M move : moves) {
                 makeMove(move);
-                score = minimax(null, depth - 1, -who);
+                score = minimaxScore(depth, who);
                 unmakeMove(move);
                 if (score > bestScore) {
                     bestScore = score;
@@ -174,7 +174,7 @@ public abstract class IA<M extends Move> {
             double bestScore = maxEvaluateValue();
             for (M move : moves) {
                 makeMove(move);
-                score = minimax(null, depth - 1, -who);
+                score = minimaxScore(depth, who);
                 unmakeMove(move);
                 if (score < bestScore) {
                     bestScore = score;
@@ -188,7 +188,11 @@ public abstract class IA<M extends Move> {
         }
     }
     
-    /**
+    protected double minimaxScore(int depth, int who) {
+		return minimax(null, depth - 1, -who);
+	}
+
+	/**
      * Minimax with alpha beta algorithm :
      * <pre>
      * function alphabeta(node, depth, &#945;, &#946;, maximizingPlayer)
@@ -217,7 +221,7 @@ public abstract class IA<M extends Move> {
      * @param beta
      * @return
      */
-    protected double alphabeta(final IAMoveWrapper wrapper, int depth, int who, double alpha, double beta) {
+    private final double alphabeta(final IAMoveWrapper wrapper, int depth, int who, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
@@ -230,7 +234,7 @@ public abstract class IA<M extends Move> {
         if (who > 0) {
             for (M move : moves) {
                 makeMove(move);
-                score = alphabeta(null, depth - 1, -who, alpha, beta);
+                score = alphabetaScore(depth, who, alpha, beta);
                 unmakeMove(move);
                 if (score > alpha) {
                     alpha = score;
@@ -247,7 +251,7 @@ public abstract class IA<M extends Move> {
         } else {
             for (M move : moves) {
                 makeMove(move);
-                score = alphabeta(null, depth - 1, -who, alpha, beta);
+                score = alphabetaScore(depth, who, alpha, beta);
                 unmakeMove(move);
                 if (score < beta) {
                     beta = score;
@@ -263,6 +267,10 @@ public abstract class IA<M extends Move> {
             return beta;
         }
     }
+
+    protected double alphabetaScore(int depth, int who, double alpha, double beta) {
+		return alphabeta(null, depth - 1, -who, alpha, beta);
+	}
     
     /**
      * Negamax algorithm :
@@ -309,7 +317,7 @@ public abstract class IA<M extends Move> {
             double score = -maxEvaluateValue();
             for (M move : moves) {
                 makeMove(move);
-                score = -negamax(null, depth - 1, -beta, -alpha);
+                score = negamaxScore(depth, alpha, beta);
                 unmakeMove(move);
                 if (score > alpha) {
                     alpha = score;
@@ -325,6 +333,10 @@ public abstract class IA<M extends Move> {
             return alpha;
         }
     }
+
+    protected double negamaxScore(int depth, double alpha, double beta) {
+		return -negamax(null, depth - 1, -beta, -alpha);
+	}
     
     /**
      * Negascout PVS algorithm :
@@ -365,10 +377,7 @@ public abstract class IA<M extends Move> {
             boolean first = true;
             for (M move : moves) {
                 makeMove(move);
-                score = -negascout(null, depth - 1, -b, -alpha);
-                if (!first && alpha < score && score < beta) {
-                    score = -negascout(null, depth - 1, -beta, -alpha);
-                }
+                score = negascoutScore(first, depth, alpha, beta, b);
                 unmakeMove(move);
                 if (score > alpha) {
                     alpha = score;
@@ -386,6 +395,14 @@ public abstract class IA<M extends Move> {
             return alpha;
         }
     }
+
+    protected double negascoutScore(boolean first, int depth, double alpha, double beta, double b) {
+    	double score = -negascout(null, depth - 1, -b, -alpha);
+        if (!first && alpha < score && score < beta) {
+            score = -negascout(null, depth - 1, -beta, -alpha);
+        }
+        return score;
+	}
     
     /**
      * Get the IA difficulty level for the current player
