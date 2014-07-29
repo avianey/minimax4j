@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -43,10 +42,18 @@ import java.util.TreeMap;
  * @param <G> the transposition group implementation or {@link Void} if no group. 
  * @see Transposition
  */
-// TODO Enhanced transposition cutoffs
 public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>> extends IA<M> {
 	
-	public static interface TranspositionTableFactory<X> {
+	/**
+	 * Factory for transposition table.
+	 * Unless {@link TranspositionIA#TranspositionIA(fr.avianey.minimax4j.IA.Algorithm, TranspositionTableFactory)}
+	 * is used as super constructor, an {@link HashMap} is used as default implementation.
+	 * 
+	 * @author antoine vianey
+	 *
+	 * @param <X>
+	 */
+	public interface TranspositionTableFactory<X> {
 		Map<X, Double> newTransposition();
 	}
     
@@ -105,6 +112,11 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
         };
     }
 
+    /**
+     * Initialize the map of transposition table classified by groups. 
+     * @return
+     * 		A {@link TreeMap} storing transposition tables by group
+     */
     @SuppressWarnings("unchecked")
 	private TreeMap<G, Map<T, Double>> initTranspositionTableMap() {
         Type t = getClass().getGenericSuperclass();
@@ -153,7 +165,7 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
      * Default is true.
      * @return
      */
-    public boolean useTranspositionTable() {
+    protected boolean useTranspositionTable() {
     	return true;
     }
     
@@ -184,7 +196,7 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
     }
     
     /**
-     * Programmatically reset the content of the transposition table.
+     * Reset the content of the transposition table.
      * The preferred way to free memory is to use the grouping functionality.
      * 
      * @see #getGroup()
