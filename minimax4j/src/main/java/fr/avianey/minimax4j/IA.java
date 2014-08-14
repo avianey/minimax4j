@@ -144,14 +144,17 @@ public abstract class IA<M extends Move> {
      * @param DEPTH
      * @return
      */
-    private final double minimax(final IAMoveWrapper wrapper, int depth, int who) {
+    private final double minimax(final IAMoveWrapper wrapper, final int depth, final int who) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
         M bestMove = null;
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
-            return minimax(null, depth - 1, -who);
+        	next();
+            double score = minimaxScore(depth, who);
+            previous();
+            return score;
         }
         if (who > 0) {
             double score = -maxEvaluateValue();
@@ -188,7 +191,7 @@ public abstract class IA<M extends Move> {
         }
     }
     
-    protected double minimaxScore(int depth, int who) {
+    protected double minimaxScore(final int depth, final int who) {
 		return minimax(null, depth - 1, -who);
 	}
 
@@ -221,7 +224,7 @@ public abstract class IA<M extends Move> {
      * @param beta
      * @return
      */
-    private final double alphabeta(final IAMoveWrapper wrapper, int depth, int who, double alpha, double beta) {
+    private final double alphabeta(final IAMoveWrapper wrapper, final int depth, final int who, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
@@ -229,7 +232,10 @@ public abstract class IA<M extends Move> {
         double score;
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
-            return alphabeta(null, depth - 1, -who, alpha, beta);
+        	next();
+            score = alphabetaScore(depth, who, alpha, beta);
+            previous();
+            return score;
         }
         if (who > 0) {
             for (M move : moves) {
@@ -268,7 +274,7 @@ public abstract class IA<M extends Move> {
         }
     }
 
-    protected double alphabetaScore(int depth, int who, double alpha, double beta) {
+    protected double alphabetaScore(final int depth, final int who, final double alpha, final double beta) {
 		return alphabeta(null, depth - 1, -who, alpha, beta);
 	}
     
@@ -305,14 +311,17 @@ public abstract class IA<M extends Move> {
      * @param beta
      * @return
      */
-    protected double negamax(final IAMoveWrapper wrapper, int depth, double alpha, double beta) {
+    protected double negamax(final IAMoveWrapper wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
         M bestMove = null;
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
-            return -negamax(null, depth - 1, -beta, -alpha);
+        	next();
+        	double score = -negamaxScore(depth, alpha, beta);
+        	previous();
+        	return score;
         } else {
             double score = -maxEvaluateValue();
             for (M move : moves) {
@@ -334,7 +343,7 @@ public abstract class IA<M extends Move> {
         }
     }
 
-    protected double negamaxScore(int depth, double alpha, double beta) {
+    protected double negamaxScore(final int depth, final double alpha, final double beta) {
 		return -negamax(null, depth - 1, -beta, -alpha);
 	}
     
@@ -363,7 +372,7 @@ public abstract class IA<M extends Move> {
      * @param beta
      * @return
      */
-    protected double negascout(IAMoveWrapper wrapper, int depth, double alpha, double beta) {
+    protected double negascout(final IAMoveWrapper wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
@@ -371,7 +380,10 @@ public abstract class IA<M extends Move> {
         double b = beta;
         M bestMove = null;
         if (moves.isEmpty()) {
-            return -negascout(null, depth - 1, -beta, -alpha);
+        	next();
+            double score = -negascoutScore(true, depth, alpha, beta, b);
+            previous();
+            return score;
         } else {
             double score;
             boolean first = true;
@@ -396,7 +408,7 @@ public abstract class IA<M extends Move> {
         }
     }
 
-    protected double negascoutScore(boolean first, int depth, double alpha, double beta, double b) {
+    protected double negascoutScore(final boolean first, final int depth, final double alpha, final double beta, final double b) {
     	double score = -negascout(null, depth - 1, -b, -alpha);
         if (!first && alpha < score && score < beta) {
             score = -negascout(null, depth - 1, -beta, -alpha);

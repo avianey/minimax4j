@@ -45,8 +45,8 @@ public class Algorithms {
 	@Parameters
 	public static Collection<Object[]> params() {
 	    return Arrays.asList(
-//	            new Object[] {1},
-//	            new Object[] {2},
+	            new Object[] {1},
+	            new Object[] {2},
 	            new Object[] {3},
 	            new Object[] {4},
 	            new Object[] {5},

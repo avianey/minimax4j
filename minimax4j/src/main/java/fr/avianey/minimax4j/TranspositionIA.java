@@ -255,13 +255,16 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
     
     @Override
     protected double minimaxScore(int depth, int who) {
+    	if (!useTranspositionTable()) {
+    		return super.minimaxScore(depth, who);
+    	}
     	double score = 0;
     	T t = getTransposition();
         Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
         if (transpositionTable != null && transpositionTable.containsKey(t)) {
             // transposition found
             // we can stop here as we already know the value
-            // of the evaluation function
+            // returned by the evaluation function
             score = who * transpositionTable.get(t);
         } else {
             score = super.minimaxScore(depth, who);
@@ -279,13 +282,16 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
 
     @Override
     protected double alphabetaScore(int depth, int who, double alpha, double beta) {
+    	if (!useTranspositionTable()) {
+    		return super.alphabetaScore(depth, who, alpha, beta);
+    	}
     	double score = 0;
         T t = getTransposition();
         Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
         if (transpositionTable != null && transpositionTable.containsKey(t)) {
             // transposition found
             // we can stop here as we already know the value
-            // of the evaluation function
+            // returned by the evaluation function
             score = who * transpositionTable.get(t);
         } else {
             score = super.alphabetaScore(depth, who, alpha, beta);
@@ -303,13 +309,16 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
 
     @Override
     protected double negamaxScore(int depth, double alpha, double beta) {
+    	if (!useTranspositionTable()) {
+    		return super.negamaxScore(depth, alpha, beta);
+    	}
     	double score = 0;
         T t = getTransposition();
         Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
         if (transpositionTable != null && transpositionTable.containsKey(t)) {
             // transposition found
             // we can stop here as we already know the value
-            // of the evaluation function
+            // returned by the evaluation function
             score = transpositionTable.get(t);
         } else {
             score = super.negamaxScore(depth, alpha, beta);
@@ -327,13 +336,16 @@ public abstract class TranspositionIA<M extends Move, T, G extends Comparable<G>
     
     @Override
     protected double negascoutScore(boolean first, int depth, double alpha, double beta, double b) {
+    	if (!useTranspositionTable()) {
+    		return super.negascoutScore(first, depth, alpha, beta, b);
+    	}
     	double score = 0;
         T t = getTransposition();
         Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
         if (transpositionTable != null && transpositionTable.containsKey(t)) {
             // transposition found
             // we can stop here as we already know the value
-            // of the evaluation function
+            // returned by the evaluation function
             score = transpositionTable.get(t);
         } else {
             score = super.negascoutScore(first, depth, alpha, beta, b);
