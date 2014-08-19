@@ -319,7 +319,7 @@ public abstract class IA<M extends Move> {
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
         	next();
-        	double score = -negamaxScore(depth, alpha, beta);
+        	double score = negamaxScore(depth, alpha, beta);
         	previous();
         	return score;
         } else {
@@ -381,7 +381,7 @@ public abstract class IA<M extends Move> {
         M bestMove = null;
         if (moves.isEmpty()) {
         	next();
-            double score = -negascoutScore(true, depth, alpha, beta, b);
+            double score = negascoutScore(true, depth, alpha, beta, b);
             previous();
             return score;
         } else {
@@ -431,8 +431,8 @@ public abstract class IA<M extends Move> {
     public abstract boolean isOver();
     
     /**
-     * Play the given move and modify the state of the game.
-     * This function must set correctly the turn of the next player
+     * Play the given move and modify the state of the game.<br/>
+     * This function <strong>MUST</strong> set correctly the turn of the next player
      * ... by calling the next() method for example.
      * @param move
      *             The move to play
@@ -441,8 +441,8 @@ public abstract class IA<M extends Move> {
     public abstract void makeMove(M move);
     
     /**
-     * Undo the given move and restore the state of the game.
-     * This function must restore correctly the turn of the previous player
+     * Undo the given move and restore the state of the game.<br/>
+     * This function <strong>MUST</strong> restore correctly the turn of the previous player
      * ... by calling the previous() method for example.
      * @param move
      *             The move to cancel
