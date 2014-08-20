@@ -5,9 +5,9 @@
                         http://maven.apache.org/xsd/maven-4.0.0.xsd">
                         
     <modelVersion>4.0.0</modelVersion>
-    <name>minamax4j-sample</name>
+    <name>minimax4j-sample</name>
     <groupId>fr.avianey</groupId>
-    <artifactId>minamax4j-sample</artifactId>
+    <artifactId>minimax4j-sample</artifactId>
     <version>1.0.1-SNAPSHOT</version>
     <description>
         Minimax4j is a pure java implementation of the minimax algorithm.

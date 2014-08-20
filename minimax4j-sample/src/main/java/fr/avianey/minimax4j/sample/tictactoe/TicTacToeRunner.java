@@ -1,10 +1,13 @@
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.sample.tictactoe;
+
+import fr.avianey.minimax4j.Minimax.Algorithm;
+import fr.avianey.minimax4j.sample.SampleRunner;
 
 /*
  * This file is part of minimax4j.
  * <https://github.com/avianey/minimax4j>
  *  
- * Copyright (C) 2012, 2013, 2014 Antoine Vianey
+ * Copyright (C) 2012 Antoine Vianey
  * 
  * minimax4j is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,18 +24,20 @@ package fr.avianey.minimax4j;
  */
 
 /**
- * Implement this interface to provide several difficulties for your IA implementation.
+ * Run a game between two TicTacToeIA opponent...
  * 
- * @author avianey
+ * @author antoine vianey
  */
-public interface Difficulty {
+public class TicTacToeRunner extends SampleRunner<TicTacToeMove> {
 
-    /**
-     * The thinking depth for the decision rule used by the IA.<br/>
-     * Implementation of Difficulty must return a value greater or equal to one (&gt;0)
-     * @return
-     *         The thinking depth of the IA.
-     */
-    public int getDepth();
+    public TicTacToeRunner() {
+        // Change the thinking depth value > 0
+        super(new TicTacToeMinimax(Algorithm.MINIMAX), 2);
+    }
+    
+    public static void main(String[] args) {
+        SampleRunner<TicTacToeMove> runner = new TicTacToeRunner();
+        runner.run();
+    }
     
 }

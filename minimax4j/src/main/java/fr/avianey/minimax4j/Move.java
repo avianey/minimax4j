@@ -30,14 +30,14 @@ package fr.avianey.minimax4j;
  * <li>The position before the move</li>
  * <li>The position after the move</li>
  * </ul>
- * Additional information might be necessary to implement the abstract {@link IA#unmakeMove(Move)} method of the {@link IA} class :
+ * Additional information might be necessary to implement the abstract {@link Minimax#unmakeMove(Move)} method of the {@link Minimax} class :
  * <ul>
  * <li>Taken pieces</li>
  * <li>...</li>
  * </ul>
  * 
  * @author antoine vianey
- * @see IA#unmakeMove(Move)
+ * @see Minimax#unmakeMove(Move)
  *
  */
 public interface Move {}

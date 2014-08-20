@@ -12,13 +12,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import fr.avianey.minimax4j.IA;
-import fr.avianey.minimax4j.IA.Algorithm;
+import fr.avianey.minimax4j.Minimax;
+import fr.avianey.minimax4j.Minimax.Algorithm;
 import fr.avianey.minimax4j.sample.SampleRunner;
 import fr.avianey.minimax4j.sample.SampleRunner.Listener;
-import fr.avianey.minimax4j.sample.tictactoe.TicTacToeIA;
+import fr.avianey.minimax4j.sample.tictactoe.TicTacToeMinimax;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeMove;
-import fr.avianey.minimax4j.sample.tictactoe.TicTacToeTranspositionIA;
+import fr.avianey.minimax4j.sample.tictactoe.TicTacToeTranspositionMinimax;
 
 /**
  * Check for every sample game that the same game is played exactly the same for each Algorithm :<br/>
@@ -30,8 +30,8 @@ import fr.avianey.minimax4j.sample.tictactoe.TicTacToeTranspositionIA;
  * </ul>
  * 
  * @author avianey
- * @see IA
- * @see IA.Algorithm
+ * @see Minimax
+ * @see Minimax.Algorithm
  */
 @RunWith(Parameterized.class)
 public class Algorithms {
@@ -60,30 +60,30 @@ public class Algorithms {
 	@Test
     public void testTicTacToe() {
 		// normal IA
-        SampleRunner<TicTacToeMove> minimax = new SampleRunner<TicTacToeMove>(new TicTacToeIA(Algorithm.MINIMAX, depth)) {};
-        SampleRunner<TicTacToeMove> alphabeta = new SampleRunner<TicTacToeMove>(new TicTacToeIA(Algorithm.ALPHA_BETA, depth)) {};
-        SampleRunner<TicTacToeMove> negamax = new SampleRunner<TicTacToeMove>(new TicTacToeIA(Algorithm.NEGAMAX, depth)) {};
-        SampleRunner<TicTacToeMove> negascout = new SampleRunner<TicTacToeMove>(new TicTacToeIA(Algorithm.NEGASCOUT, depth)) {};
+        SampleRunner<TicTacToeMove> minimax = new SampleRunner<TicTacToeMove>(new TicTacToeMinimax(Algorithm.MINIMAX), depth) {};
+        SampleRunner<TicTacToeMove> alphabeta = new SampleRunner<TicTacToeMove>(new TicTacToeMinimax(Algorithm.ALPHA_BETA), depth) {};
+        SampleRunner<TicTacToeMove> negamax = new SampleRunner<TicTacToeMove>(new TicTacToeMinimax(Algorithm.NEGAMAX), depth) {};
+        SampleRunner<TicTacToeMove> negascout = new SampleRunner<TicTacToeMove>(new TicTacToeMinimax(Algorithm.NEGASCOUT), depth) {};
         // transposition Table backed IA
-        SampleRunner<TicTacToeMove> minimaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionIA(Algorithm.MINIMAX, depth)) {};
-        SampleRunner<TicTacToeMove> alphabetaTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionIA(Algorithm.ALPHA_BETA, depth)) {};
-        SampleRunner<TicTacToeMove> negamaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionIA(Algorithm.NEGAMAX, depth)) {};
-        SampleRunner<TicTacToeMove> negascoutTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionIA(Algorithm.NEGASCOUT, depth)) {};
+        SampleRunner<TicTacToeMove> minimaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.MINIMAX), depth) {};
+        SampleRunner<TicTacToeMove> alphabetaTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.ALPHA_BETA), depth) {};
+        SampleRunner<TicTacToeMove> negamaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.NEGAMAX), depth) {};
+        SampleRunner<TicTacToeMove> negascoutTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.NEGASCOUT), depth) {};
         
         final List<TicTacToeMove> minimaxMoves = new ArrayList<TicTacToeMove>(9);
         
         minimax.setListener(new Listener<TicTacToeMove>() {
 
             @Override
-            public void onMove(IA<TicTacToeMove> ia, TicTacToeMove move, int turn) {
+            public void onMove(Minimax<TicTacToeMove> ia, TicTacToeMove move, int turn) {
                 minimaxMoves.add(move);
             }
 
             @Override
-            public void onGameOver(IA<TicTacToeMove> ia) {}
+            public void onGameOver(Minimax<TicTacToeMove> ia) {}
 
             @Override
-            public void onNoPossibleMove(IA<TicTacToeMove> ia) {}
+            public void onNoPossibleMove(Minimax<TicTacToeMove> ia) {}
             
         });
         
@@ -93,7 +93,7 @@ public class Algorithms {
         Listener<TicTacToeMove> listener = new Listener<TicTacToeMove>() {
 
             @Override
-            public void onMove(IA<TicTacToeMove> ia, TicTacToeMove move, int turn) {
+            public void onMove(Minimax<TicTacToeMove> ia, TicTacToeMove move, int turn) {
                 TicTacToeMove minimaxMove = moves.remove(0);
                 Assert.assertEquals("Wrong player for turn " + turn, minimaxMove.getPlayer(), move.getPlayer());
                 Assert.assertEquals("Wrong column for turn " + turn, minimaxMove.getX(), move.getX());
@@ -101,10 +101,10 @@ public class Algorithms {
             }
 
             @Override
-            public void onGameOver(IA<TicTacToeMove> ia) {}
+            public void onGameOver(Minimax<TicTacToeMove> ia) {}
 
             @Override
-            public void onNoPossibleMove(IA<TicTacToeMove> ia) {}
+            public void onNoPossibleMove(Minimax<TicTacToeMove> ia) {}
             
         };
 

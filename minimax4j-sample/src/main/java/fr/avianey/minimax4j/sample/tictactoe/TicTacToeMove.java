@@ -68,7 +68,7 @@ public class TicTacToeMove implements Move {
     }
     
     public String toString() {
-    	return (player == TicTacToeIA.PLAYER_O ? "O" : "X") + " (" + x + ";" + y + ")";
+    	return (player == TicTacToeMinimax.PLAYER_O ? "O" : "X") + " (" + x + ";" + y + ")";
     }
     
 }

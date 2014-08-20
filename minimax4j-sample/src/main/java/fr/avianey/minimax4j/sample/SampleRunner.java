@@ -2,7 +2,7 @@ package fr.avianey.minimax4j.sample;
 
 import java.util.List;
 
-import fr.avianey.minimax4j.IA;
+import fr.avianey.minimax4j.Minimax;
 import fr.avianey.minimax4j.Move;
 
 /*
@@ -35,16 +35,18 @@ import fr.avianey.minimax4j.Move;
 public abstract class SampleRunner<M extends Move> {
     
     public static interface Listener<M extends Move> {
-        public void onMove(IA<M> ia, M move, int turn);
-        public void onGameOver(IA<M> ia);
-        public void onNoPossibleMove(IA<M> ia);
+        public void onMove(Minimax<M> ia, M move, int turn);
+        public void onGameOver(Minimax<M> ia);
+        public void onNoPossibleMove(Minimax<M> ia);
     }
 
-    private IA<M> ia;
+    private Minimax<M> ia;
+    private int depth;
     private Listener<M> listener;
 
-    public SampleRunner(IA<M> ia) {
+    public SampleRunner(Minimax<M> ia, int depth) {
         this.ia = ia;
+        this.depth = depth;
     }
     
     public void setListener(Listener<M> listener) {
@@ -57,7 +59,7 @@ public abstract class SampleRunner<M extends Move> {
         while (!ia.isOver()) {
             List<M> moves = ia.getPossibleMoves();
             if (!moves.isEmpty()) {
-                move = ia.getBestMove();
+                move = ia.getBestMove(depth);
                 ia.makeMove(move);
                 if (listener != null) {
                     listener.onMove(ia, move, ++turn);
