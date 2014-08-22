@@ -318,7 +318,7 @@ public abstract class Minimax<M extends Move> {
      * @param beta
      * @return
      */
-    protected double negamax(final MoveWrapper wrapper, final int depth, double alpha, double beta) {
+    private double negamax(final MoveWrapper wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
@@ -379,7 +379,7 @@ public abstract class Minimax<M extends Move> {
      * @param beta
      * @return
      */
-    protected double negascout(final MoveWrapper wrapper, final int depth, double alpha, double beta) {
+    private double negascout(final MoveWrapper wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
@@ -418,6 +418,7 @@ public abstract class Minimax<M extends Move> {
     protected double negascoutScore(final boolean first, final int depth, final double alpha, final double beta, final double b) {
     	double score = -negascout(null, depth - 1, -b, -alpha);
         if (!first && alpha < score && score < beta) {
+            // fails high... full re-search
             score = -negascout(null, depth - 1, -beta, -alpha);
         }
         return score;
