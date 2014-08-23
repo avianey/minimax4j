@@ -39,7 +39,7 @@ import java.util.TreeMap;
  *
  * @param <M> the {@link Move} implementation
  * @param <T> the transposition table key
- * @param <G> the transposition group implementation or {@link Void} if no group. 
+ * @param <G> the transposition group implementation or {@link Void} if grouping is not necessary. 
  * @see Transposition
  */
 public abstract class TranspositionMinimax<M extends Move, T, G extends Comparable<G>> extends Minimax<M> {
@@ -233,11 +233,11 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
      * Groups can be use to lower the number of transposition stored in memory :
      * <dl>
      * <dt>Reversi</dt>
-     * <dd>Transpositions can be group by number of discs on the board</dd>
+     * <dd>Transpositions can be grouped by number of discs on board</dd>
      * <dt>Chess</dt>
-     * <dd>Transpositions can be group by number of left pieces of each color on the board</dd>
+     * <dd>Transpositions can be grouped by number of left pieces of each color on the board</dd>
      * <dt>Connect Four</dt>
-     * <dd>Transpositions can be group by number of dropped discs</dd>
+     * <dd>Transpositions can be grouped by number of dropped discs</dd>
      * <dt>...</dt>
      * </dl>
      * Groups <b>MUST</b> be ordered such as when the current configuration hash belong to group
@@ -248,6 +248,17 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
      *      the group for the current position
      */
     public abstract G getGroup();
+    
+    private final void saveTransposition(Map<T, Double> transpositionTable, double score) {
+        if (transpositionTable == null) {
+            transpositionTable = transpositionTableFactory.newTransposition();
+            transpositionTableMap.put(getGroup(), transpositionTable);
+        }
+        // save transposition
+        for (T st : getSymetricTranspositions()) {
+            transpositionTable.put(st, score);
+        }
+    }
     
     /*=================*
      * IMPLEMENTATIONS *
@@ -268,14 +279,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
             score = who * transpositionTable.get(t);
         } else {
             score = super.minimaxScore(depth, who);
-            if (transpositionTable == null) {
-            	transpositionTable = transpositionTableFactory.newTransposition();
-            	transpositionTableMap.put(getGroup(), transpositionTable);
-            }
-            // save transposition
-            for (T st : getSymetricTranspositions()) {
-                transpositionTable.put(st, who * score);
-            }
+            saveTransposition(transpositionTable, who * score);
         }
         return score;
     }
@@ -295,14 +299,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
             score = who * transpositionTable.get(t);
         } else {
             score = super.alphabetaScore(depth, who, alpha, beta);
-            if (transpositionTable == null) {
-                transpositionTable = transpositionTableFactory.newTransposition();
-                transpositionTableMap.put(getGroup(), transpositionTable);
-            }
-            // save transposition
-            for (T st : getSymetricTranspositions()) {
-                transpositionTable.put(st, who * score);
-            }
+            saveTransposition(transpositionTable, who * score);
         }
         return score;
     }
@@ -322,14 +319,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
             score = transpositionTable.get(t);
         } else {
             score = super.negamaxScore(depth, alpha, beta);
-            if (transpositionTable == null) {
-                transpositionTable = transpositionTableFactory.newTransposition();
-                transpositionTableMap.put(getGroup(), transpositionTable);
-            }
-            // save transposition
-            for (T st : getSymetricTranspositions()) {
-                transpositionTable.put(st, score);
-            }
+            saveTransposition(transpositionTable, score);
         }
         return score;
     }
@@ -349,14 +339,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
             score = transpositionTable.get(t);
         } else {
             score = super.negascoutScore(first, depth, alpha, beta, b);
-            if (transpositionTable == null) {
-                transpositionTable = transpositionTableFactory.newTransposition();
-                transpositionTableMap.put(getGroup(), transpositionTable);
-            }
-            // save transposition
-            for (T st : getSymetricTranspositions()) {
-                transpositionTable.put(st, score);
-            }
+            saveTransposition(transpositionTable, score);
         }
         return score;
     }
