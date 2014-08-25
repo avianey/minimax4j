@@ -18,6 +18,7 @@ import fr.avianey.minimax4j.sample.SampleRunner;
 import fr.avianey.minimax4j.sample.SampleRunner.Listener;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeMinimax;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeMove;
+import fr.avianey.minimax4j.sample.tictactoe.TicTacToeParallelMinimax;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeTranspositionMinimax;
 
 /**
@@ -59,16 +60,18 @@ public class Algorithms {
 
 	@Test
     public void testTicTacToe() {
-		// normal IA
+		// normal minimax
         SampleRunner<TicTacToeMove> minimax = new SampleRunner<TicTacToeMove>(new TicTacToeMinimax(Algorithm.MINIMAX), depth) {};
         SampleRunner<TicTacToeMove> alphabeta = new SampleRunner<TicTacToeMove>(new TicTacToeMinimax(Algorithm.ALPHA_BETA), depth) {};
         SampleRunner<TicTacToeMove> negamax = new SampleRunner<TicTacToeMove>(new TicTacToeMinimax(Algorithm.NEGAMAX), depth) {};
         SampleRunner<TicTacToeMove> negascout = new SampleRunner<TicTacToeMove>(new TicTacToeMinimax(Algorithm.NEGASCOUT), depth) {};
-        // transposition Table backed IA
+        // transposition Table backed minimax
         SampleRunner<TicTacToeMove> minimaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.MINIMAX), depth) {};
         SampleRunner<TicTacToeMove> alphabetaTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.ALPHA_BETA), depth) {};
         SampleRunner<TicTacToeMove> negamaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.NEGAMAX), depth) {};
         SampleRunner<TicTacToeMove> negascoutTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.NEGASCOUT), depth) {};
+        // parallel minimax
+        SampleRunner<TicTacToeMove> negamaxParallel = new SampleRunner<TicTacToeMove>(new TicTacToeParallelMinimax(Algorithm.MINIMAX), depth) {};
         
         final List<TicTacToeMove> minimaxMoves = new ArrayList<TicTacToeMove>(9);
         
@@ -112,7 +115,9 @@ public class Algorithms {
         negamax.setListener(listener);
         negascout.setListener(listener);
         minimaxTransposition.setListener(listener);
+        negamaxParallel.setListener(listener);
 
+        // classic
         moves.clear();
         moves.addAll(minimaxMoves);
         alphabeta.run();
@@ -122,6 +127,8 @@ public class Algorithms {
         moves.clear();
         moves.addAll(minimaxMoves);
         negascout.run();
+        
+        // transposition
         moves.clear();
         moves.addAll(minimaxMoves);
         minimaxTransposition.run();
@@ -134,6 +141,11 @@ public class Algorithms {
         moves.clear();
         moves.addAll(minimaxMoves);
         negascoutTransposition.run();
+        
+        // parallel
+        moves.clear();
+        moves.addAll(minimaxMoves);
+        negamaxParallel.run();
     }
     
 }

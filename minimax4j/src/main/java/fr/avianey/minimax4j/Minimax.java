@@ -45,7 +45,7 @@ public abstract class Minimax<M extends Move> {
     
     private final Algorithm algo;
     
-    protected final class MoveWrapper {
+    static final class MoveWrapper<M extends Move> {
         public M move;
     }
     
@@ -104,7 +104,7 @@ public abstract class Minimax<M extends Move> {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
-        MoveWrapper wrapper = new MoveWrapper();
+        MoveWrapper<M> wrapper = new MoveWrapper<>();
         switch (algo) {
         case MINIMAX:
             minimax(wrapper, depth, 1);
@@ -151,7 +151,7 @@ public abstract class Minimax<M extends Move> {
      * @param DEPTH
      * @return
      */
-    private final double minimax(final MoveWrapper wrapper, final int depth, final int who) {
+    private final double minimax(final MoveWrapper<M> wrapper, final int depth, final int who) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
@@ -231,7 +231,7 @@ public abstract class Minimax<M extends Move> {
      * @param beta
      * @return
      */
-    private final double alphabeta(final MoveWrapper wrapper, final int depth, final int who, double alpha, double beta) {
+    private final double alphabeta(final MoveWrapper<M> wrapper, final int depth, final int who, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
@@ -318,7 +318,7 @@ public abstract class Minimax<M extends Move> {
      * @param beta
      * @return
      */
-    private double negamax(final MoveWrapper wrapper, final int depth, double alpha, double beta) {
+    private double negamax(final MoveWrapper<M> wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
@@ -379,7 +379,7 @@ public abstract class Minimax<M extends Move> {
      * @param beta
      * @return
      */
-    private double negascout(final MoveWrapper wrapper, final int depth, double alpha, double beta) {
+    private double negascout(final MoveWrapper<M> wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
@@ -495,6 +495,9 @@ public abstract class Minimax<M extends Move> {
      * @see #unmakeMove(Move)
      */
     public abstract void previous();
-    
+
+    public Algorithm getAlgo() {
+        return algo;
+    }
     
 }
