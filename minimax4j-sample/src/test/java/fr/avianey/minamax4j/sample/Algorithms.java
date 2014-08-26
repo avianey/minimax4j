@@ -46,7 +46,7 @@ public class Algorithms {
 	@Parameters
 	public static Collection<Object[]> params() {
 	    return Arrays.asList(
-	            new Object[] {1},
+//	            new Object[] {1},
 	            new Object[] {2},
 	            new Object[] {3},
 	            new Object[] {4},
@@ -143,6 +143,7 @@ public class Algorithms {
         negascoutTransposition.run();
         
         // parallel
+        System.out.println("Depth " + depth);
         moves.clear();
         moves.addAll(minimaxMoves);
         negamaxParallel.run();
