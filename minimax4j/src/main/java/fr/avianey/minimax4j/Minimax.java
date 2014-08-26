@@ -71,8 +71,9 @@ public abstract class Minimax<M extends Move> {
          **/
         NEGAMAX,
         /** 
-         * The Negascout algorithm (fastest)<br/>
-         * Also called Principal Variation Search
+         * The Negascout algorithm (fastest when strong move ordering is provided)<br/>
+         * Also called Principal Variation Search...
+         * @see Minimax#getPossibleMoves()
          * @see http://en.wikipedia.org/wiki/Negascout
          **/
         NEGASCOUT;
@@ -96,7 +97,9 @@ public abstract class Minimax<M extends Move> {
     }
     
     /**
-     * Get the best {@link Move} for the given search depth
+     * Get the best {@link Move} for the given search depth<br/>
+     * This methods iterates over {@link #getPossibleMoves()} to find the best one.
+     * If two or more {@link Move} lead to the same best evaluation, the first one is returned.
      * @param depth The search depth (must be > 0)
      * @return
      */
@@ -496,6 +499,10 @@ public abstract class Minimax<M extends Move> {
      */
     public abstract void previous();
 
+    /**
+     * Get the implementation used for tree search.
+     * @return the {@link Algorithm} used.
+     */
     public Algorithm getAlgo() {
         return algo;
     }
