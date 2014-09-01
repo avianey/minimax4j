@@ -26,7 +26,7 @@ import fr.avianey.minimax4j.Minimax;
  */
 
 /**
- * Simple TicTacToe IA to showcase the API. 
+ * Simple TicTacToe AI to showcase the API. 
  * 
  * @author antoine vianey
  */

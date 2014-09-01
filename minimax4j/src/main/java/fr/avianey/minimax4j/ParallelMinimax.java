@@ -4,7 +4,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.RecursiveAction;
 
 /*
  * This file is part of minimax4j.
@@ -28,18 +30,19 @@ import java.util.concurrent.RecursiveTask;
 
 public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
     
-    private static final ForkJoinPool pool = new ForkJoinPool();
+    private static final ForkJoinPool pool = new ForkJoinPool(4);
     
     /**
-     * Creates a new IA using the {@link Algorithm#NEGAMAX} algorithm<br/>
-     * {@link Algorithm#NEGASCOUT} performs slowly on several tests at the moment...
+     * Creates a new AI using the {@link Algorithm#NEGAMAX} algorithm 
+     * with a parallelism given by {@link Runtime#availableProcessors()}
      */
     public ParallelMinimax() {
         this(Algorithm.NEGAMAX);
     }
     
     /**
-     * Creates a new IA using the provided algorithm
+     * Creates a new IA using the provided {@link Algorithm}
+     * with a parallelism given by {@link Runtime#availableProcessors()}
      * @param algo The decision rule to use
      * @see Algorithm
      */
@@ -48,173 +51,178 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
     }
     
     /**
-     * Get the best {@link Move} for the given search depth
+     * Get the best {@link Move} for the given search depth using <b>Dynamic Tree Splitting (DTS)</b><br/>
+     * This methods iterates over {@link #getPossibleMoves()} to find the best one.
+     * Work is dispatched across workers as long as the specified parallelism is not reach...
+     * When all available workers are busy, sub-trees exploration is not dispatch to worker but
+     * continue inside the current {@link ForkJoinWorkerThread} as long as other workers have work to do.
+     * When a worker has no more work to do, it is available to help another running worker.
+     * If two or more {@link Move} lead to the same best evaluation, parallelism does not insure that
+     * the first one will be returned by this function. Depending of the size of sub-trees, the returned
+     * move is the one that is first computed...
      * @param depth The search depth (must be > 0)
      * @return
-     * @throws ExecutionException 
-     * @throws InterruptedException 
      */
     public M getBestMove(final int depth) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
-        MoveWrapper<M> wrapper;
-        Cutoff cutoff = new Cutoff(-maxEvaluateValue(), maxEvaluateValue());
+        MoveWrapper<M> wrapper = new MoveWrapper<>();
         switch (getAlgo()) {
         default:
         case NEGAMAX:
-            wrapper = pool.invoke(new NegamaxMasterTask<>(this, depth, cutoff));
-            break;
+        	NegamaxMasterTask<M> task = new NegamaxMasterTask<M>(this, wrapper, depth, new Window(-maxEvaluateValue(), maxEvaluateValue())); 
+        	pool.invoke(task);
+        	return wrapper.move;
         }
-        return wrapper.move;
     }
     
-    private double negamax(final MoveWrapper<M> wrapper, final int depth, final Cutoff cutoff) throws InterruptedException, ExecutionException {
-        if (depth == 0 || isOver()) {
-            return evaluate();
-        }
-        Collection<M> moves = getPossibleMoves();
-        if (moves.isEmpty()) {
-        	next();
-        	double score = negamaxScore(depth, cutoff);
-        	previous();
-        	return score;
-        } else {
-            boolean first = true;
-            double currentBest = cutoff.alpha;
-            LinkedList<NegamaxTask<M>> tasks = new LinkedList<>();
-            for (M move : moves) {
-                if (first || pool.getQueuedTaskCount() > 0) {
-                    // young brother wait...
-                    // reduce alpha beta window
-                    // assume it's the best possible move
-                    first = false;
-                    makeMove(move);
-                    double score = negamaxScore(depth, cutoff);
-                    cutoff.check(score);
-                    unmakeMove(move);
-                    if (wrapper != null && score > currentBest) {
-                        currentBest = score;
-                        wrapper.move = move;
-                    }
-                } else {
-                    NegamaxTask<M> task = new NegamaxTask<>(this.clone(), move, depth, cutoff);
-                    task.fork();
-                    tasks.add(task);
-                }
-            }
-            // await termination of all brothers
-            // once all done alpha == best score
-            for (NegamaxTask<M> task : tasks) {
-                if (task.join() != null) {
-                    if (task.getRawResult() > currentBest 
-                            && wrapper != null) {
-                        currentBest = task.getRawResult();
-                        wrapper.move = task.move;
-                    }
-                } else {
-                    // cutoff
-                    // TODO : cancel tasks
-                }
-            }
-            return cutoff.alpha;
-        }
-    }
+    static abstract class RecursiveNegamaxAction<M extends Move> extends RecursiveAction {
+    	
+    	static final class SubTreeWaitingException extends Exception {
+			private static final long serialVersionUID = 1L;
+		}
 
-    protected double negamaxScore(final int depth, final Cutoff cutoff) throws InterruptedException, ExecutionException {
-		return -negamax(null, depth - 1, cutoff.inverse());
-	}
-    
-    @Override
-    public abstract ParallelMinimax<M> clone();
-    
-    static class NegamaxMasterTask<M extends Move> extends RecursiveTask<MoveWrapper<M>> {
+		private static final long serialVersionUID = 1L;
+
+		final ParallelMinimax<M> minimax;
+		
+		RecursiveNegamaxAction(final ParallelMinimax<M> minimax) {
+			this.minimax = minimax;
+		}
+		
+	    double negamax(final MoveWrapper<M> wrapper, final int depth, Window window) throws InterruptedException, ExecutionException {
+	        if (depth == 0 || minimax.isOver()) {
+	            return minimax.evaluate();
+	        }
+	        Collection<M> moves = minimax.getPossibleMoves();
+	        if (moves.isEmpty()) {
+	        	minimax.next();
+	        	double score = negamaxScore(depth, window);
+	        	minimax.previous();
+	        	return score;
+	        } else {
+	            boolean first = true;
+	            double score;
+	            Collection<ForkJoinTask<?>> tasks = new LinkedList<>();
+	            for (M move : moves) {
+	                if (first || pool.getQueuedTaskCount() > 0) {
+	                    // young brother wait...
+	                	// or all workers running (no need to fork then)
+	                    first = false;
+	                    minimax.makeMove(move);
+	                    score = negamaxScore(depth, window);
+	                    minimax.unmakeMove(move);
+	                    if (score > window.alpha) {
+	                    	synchronized (window) {
+	                    		if (score > window.alpha) {
+			                    	window.alpha = score;
+			                        if (wrapper != null) {
+			                            wrapper.move = move;
+			                        }
+			                        if (window.alpha >= window.beta) {
+			                            break;
+			                        }
+	                    		}
+	                    	}
+	                    }
+	                } else {
+	                	// fork sub-tree exploration
+	                    NegamaxTask<M> task = new NegamaxTask<>(minimax.clone(), wrapper, move, depth, window);
+	                    task.fork();
+	                    tasks.add(task);
+	                }
+	            }
+	            // await termination of all brothers
+	            // this will bloc the current worker
+	            // ... need to be optimized !
+	            for (ForkJoinTask<?> task : tasks) {
+	            	task.get();
+	            }
+	            return window.alpha;
+	        }
+	    }
+
+	    double negamaxScore(final int depth, Window window) throws InterruptedException, ExecutionException {
+			return -negamax(null, depth - 1, window.inverse());
+		}
+		
+    }
+     
+    static class NegamaxMasterTask<M extends Move> extends NegamaxTask<M> {
 
         private static final long serialVersionUID = 1L;
         
-        final ParallelMinimax<M> minimax;
-        final MoveWrapper<M> wrapper = new MoveWrapper<>();
-        final int depth;
-        final Cutoff cutoff;
-        
-        public NegamaxMasterTask(ParallelMinimax<M> minimax, int depth, Cutoff cutoff) {
-            this.depth = depth;
-            this.cutoff = cutoff;
-            this.minimax = minimax;
+        public NegamaxMasterTask(ParallelMinimax<M> minimax, MoveWrapper<M> wrapper, int depth, Window window) {
+        	super(minimax, wrapper, null, depth, window);
         }
         
         @Override
-        protected MoveWrapper<M> compute() {
+        protected void compute() {
             try {
-                minimax.negamax(wrapper, depth, cutoff);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-            return wrapper;
+				negamax(wrapper, depth, window);
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
         }
         
     }
     
-    static class NegamaxTask<M extends Move> extends RecursiveTask<Double> {
+    static class NegamaxTask<M extends Move> extends RecursiveNegamaxAction<M> {
 
         private static final long serialVersionUID = 1L;
         
         final int depth;
-        final ParallelMinimax<M> minimax;
-        final Cutoff cutoff;
+        final Window window;
+        final MoveWrapper<M> wrapper;
         final M move;
         
-        NegamaxTask(ParallelMinimax<M> minimax, M move, int depth, Cutoff cutoff) {
-            this.depth = depth;
-            this.minimax = minimax;
-            this.cutoff = cutoff;
+        NegamaxTask(ParallelMinimax<M> minimax, MoveWrapper<M> wrapper, M move, int depth, Window window) {
+            super(minimax);
+        	this.depth = depth;
+            this.window = window;
+            this.wrapper = wrapper;
             this.move = move;
         }
         
         @Override
-        protected Double compute() {
-            minimax.makeMove(move);
-            Double score = null;
-            try {
-                score = minimax.negamaxScore(depth, cutoff);
-            } catch (InterruptedException | ExecutionException e) {}
-            minimax.unmakeMove(move);
-            return cutoff.check(score);
-        }
-        
-    }
-    
-    static class Cutoff {
-
-        public volatile Double alpha;
-        public volatile Double beta;
-        
-        public Cutoff(double alpha, double beta) {
-            this.alpha = alpha;
-            this.beta = beta;
-        }
-        
-        public Cutoff inverse() {
-            return new Cutoff(-beta, -alpha);
-        }
-
-        public Double check(double score) {
-            if (score > alpha) {
-                synchronized (this) {
-                    // double checked locking
-                    if (score > alpha) {
-                        alpha = score;
-                        if (alpha >= beta) {
-                            // cutoff
-                            return null;
-                        }
-                    }
-                }
+        protected void compute() {
+            if (window.alpha >= window.beta) {
+            	// abort if a cutoff has been found
+            	// before the execution of this task
+                return;
             }
-            return score;
+        	Double score = window.alpha;
+        	minimax.makeMove(move);
+			try {
+				score = negamaxScore(depth, window);
+			} catch (InterruptedException | ExecutionException e) {}
+            if (score > window.alpha) {
+            	synchronized (window) {
+            		if (score > window.alpha) {
+		            	window.alpha = score;
+		                if (wrapper != null) {
+		                    wrapper.move = move;
+		                }
+            		}
+            	}
+            }
         }
-        
     }
     
+    static class Window {
+    	public volatile double alpha;
+    	public volatile double beta;
+		public Window(double alpha, double beta) {
+			this.alpha = alpha;
+			this.beta = beta;
+		}
+		public Window inverse() {
+			return new Window(-beta, -alpha);
+		}
+    }
+    
+    @Override
+    public abstract ParallelMinimax<M> clone();
     
 }

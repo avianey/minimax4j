@@ -14,12 +14,34 @@ import org.junit.runners.Parameterized.Parameters;
 
 import fr.avianey.minimax4j.Minimax;
 import fr.avianey.minimax4j.Minimax.Algorithm;
+import fr.avianey.minimax4j.Move;
+import fr.avianey.minimax4j.ParallelMinimax;
+import fr.avianey.minimax4j.TranspositionMinimax;
 import fr.avianey.minimax4j.sample.SampleRunner;
 import fr.avianey.minimax4j.sample.SampleRunner.Listener;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeMinimax;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeMove;
-import fr.avianey.minimax4j.sample.tictactoe.TicTacToeParallelMinimax;
 import fr.avianey.minimax4j.sample.tictactoe.TicTacToeTranspositionMinimax;
+
+/*
+ * This file is part of minimax4j.
+ * <https://github.com/avianey/minimax4j>
+ *  
+ * Copyright (C) 2012, 2013, 2014 Antoine Vianey
+ * 
+ * minimax4j is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * minimax4j is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with minimax4j. If not, see <http://www.gnu.org/licenses/lgpl.html>
+ */
 
 /**
  * Check for every sample game that the same game is played exactly the same for each Algorithm :<br/>
@@ -29,9 +51,14 @@ import fr.avianey.minimax4j.sample.tictactoe.TicTacToeTranspositionMinimax;
  * <li>Negamax</li>
  * <li>Negascout</li>
  * </ul>
+ * {@link Minimax} and {@link TranspositionMinimax} only are tested.<br/>
+ * {@link ParallelMinimax} does not ensure that {@link ParallelMinimax#getBestMove(int)} returns the 
+ * first {@link Move} in  the {@link ParallelMinimax#getPossibleMoves()} list that have the highest 
+ * possible evaluated value (just like the serial {@link Minimax} does).
  * 
- * @author avianey
+ * @author antoine vianey
  * @see Minimax
+ * @see TranspositionMinimax
  * @see Minimax.Algorithm
  */
 @RunWith(Parameterized.class)
@@ -46,7 +73,7 @@ public class Algorithms {
 	@Parameters
 	public static Collection<Object[]> params() {
 	    return Arrays.asList(
-//	            new Object[] {1},
+	            new Object[] {1},
 	            new Object[] {2},
 	            new Object[] {3},
 	            new Object[] {4},
@@ -58,6 +85,9 @@ public class Algorithms {
 	        );
 	}
 
+	/**
+	 * Tests that each {@link Algorithm} plays the same way
+	 */
 	@Test
     public void testTicTacToe() {
 		// normal minimax
@@ -70,8 +100,6 @@ public class Algorithms {
         SampleRunner<TicTacToeMove> alphabetaTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.ALPHA_BETA), depth) {};
         SampleRunner<TicTacToeMove> negamaxTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.NEGAMAX), depth) {};
         SampleRunner<TicTacToeMove> negascoutTransposition = new SampleRunner<TicTacToeMove>(new TicTacToeTranspositionMinimax(Algorithm.NEGASCOUT), depth) {};
-        // parallel minimax
-        SampleRunner<TicTacToeMove> negamaxParallel = new SampleRunner<TicTacToeMove>(new TicTacToeParallelMinimax(Algorithm.MINIMAX), depth) {};
         
         final List<TicTacToeMove> minimaxMoves = new ArrayList<TicTacToeMove>(9);
         
@@ -115,7 +143,6 @@ public class Algorithms {
         negamax.setListener(listener);
         negascout.setListener(listener);
         minimaxTransposition.setListener(listener);
-        negamaxParallel.setListener(listener);
 
         // classic
         moves.clear();
@@ -141,12 +168,6 @@ public class Algorithms {
         moves.clear();
         moves.addAll(minimaxMoves);
         negascoutTransposition.run();
-        
-        // parallel
-        System.out.println("Depth " + depth);
-        moves.clear();
-        moves.addAll(minimaxMoves);
-        negamaxParallel.run();
     }
     
 }
