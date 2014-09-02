@@ -26,7 +26,7 @@ import fr.avianey.minimax4j.ParallelMinimax;
  */
 
 /**
- * Simple TicTacToe AI to showcase the parallel API. 
+ * Simple TicTacToe IA to showcase the API. 
  * 
  * @author antoine vianey
  */

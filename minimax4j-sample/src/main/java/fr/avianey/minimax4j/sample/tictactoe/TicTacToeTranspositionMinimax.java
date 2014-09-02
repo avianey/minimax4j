@@ -26,7 +26,7 @@ import fr.avianey.minimax4j.TranspositionMinimax;
  */
 
 /**
- * Simple TicTacToe AI to showcase the transposition API. 
+ * Simple TicTacToe IA to showcase the API. 
  * 
  * @author antoine vianey
  */
