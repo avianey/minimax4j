@@ -29,7 +29,7 @@ import java.util.concurrent.RecursiveTask;
 public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
     
     private static final ForkJoinPool pool = new ForkJoinPool();
-    
+        
     /**
      * Creates a new IA using the {@link Algorithm#NEGAMAX} algorithm<br/>
      * {@link Algorithm#NEGASCOUT} performs slowly on several tests at the moment...
@@ -58,133 +58,21 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
-        MoveWrapper<M> wrapper;
+        MoveWrapper<M> wrapper = new MoveWrapper<>();
         Cutoff cutoff = new Cutoff(-maxEvaluateValue(), maxEvaluateValue());
         switch (getAlgo()) {
         default:
         case NEGAMAX:
-            wrapper = pool.invoke(new NegamaxMasterTask<>(this, depth, cutoff));
+            pool.invoke(new NegamaxAction<M>(this, wrapper, null, depth, cutoff));
             break;
         }
         return wrapper.move;
     }
     
-    private double negamax(final MoveWrapper<M> wrapper, final int depth, final Cutoff cutoff) throws InterruptedException, ExecutionException {
-        if (depth == 0 || isOver()) {
-            return evaluate();
-        }
-        Collection<M> moves = getPossibleMoves();
-        if (moves.isEmpty()) {
-        	next();
-        	double score = negamaxScore(depth, cutoff);
-        	previous();
-        	return score;
-        } else {
-            boolean first = true;
-            double currentBest = cutoff.alpha;
-            LinkedList<NegamaxTask<M>> tasks = new LinkedList<>();
-            for (M move : moves) {
-                if (first || pool.getQueuedTaskCount() > 0) {
-                    // young brother wait...
-                    // reduce alpha beta window
-                    // assume it's the best possible move
-                    first = false;
-                    makeMove(move);
-                    double score = negamaxScore(depth, cutoff);
-                    cutoff.check(score);
-                    unmakeMove(move);
-                    if (wrapper != null && score > currentBest) {
-                        currentBest = score;
-                        wrapper.move = move;
-                    }
-                } else {
-                    NegamaxTask<M> task = new NegamaxTask<>(this.clone(), move, depth, cutoff);
-                    task.fork();
-                    tasks.add(task);
-                }
-            }
-            // await termination of all brothers
-            // once all done alpha == best score
-            for (NegamaxTask<M> task : tasks) {
-                if (task.join() != null) {
-                    if (task.getRawResult() > currentBest 
-                            && wrapper != null) {
-                        currentBest = task.getRawResult();
-                        wrapper.move = task.move;
-                    }
-                } else {
-                    // cutoff
-                    // TODO : cancel tasks
-                }
-            }
-            return cutoff.alpha;
-        }
-    }
-
-    protected double negamaxScore(final int depth, final Cutoff cutoff) throws InterruptedException, ExecutionException {
-		return -negamax(null, depth - 1, cutoff.inverse());
-	}
-    
     @Override
     public abstract ParallelMinimax<M> clone();
-    
-    static class NegamaxMasterTask<M extends Move> extends RecursiveTask<MoveWrapper<M>> {
-
-        private static final long serialVersionUID = 1L;
         
-        final ParallelMinimax<M> minimax;
-        final MoveWrapper<M> wrapper = new MoveWrapper<>();
-        final int depth;
-        final Cutoff cutoff;
-        
-        public NegamaxMasterTask(ParallelMinimax<M> minimax, int depth, Cutoff cutoff) {
-            this.depth = depth;
-            this.cutoff = cutoff;
-            this.minimax = minimax;
-        }
-        
-        @Override
-        protected MoveWrapper<M> compute() {
-            try {
-                minimax.negamax(wrapper, depth, cutoff);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-            return wrapper;
-        }
-        
-    }
-    
-    static class NegamaxTask<M extends Move> extends RecursiveTask<Double> {
-
-        private static final long serialVersionUID = 1L;
-        
-        final int depth;
-        final ParallelMinimax<M> minimax;
-        final Cutoff cutoff;
-        final M move;
-        
-        NegamaxTask(ParallelMinimax<M> minimax, M move, int depth, Cutoff cutoff) {
-            this.depth = depth;
-            this.minimax = minimax;
-            this.cutoff = cutoff;
-            this.move = move;
-        }
-        
-        @Override
-        protected Double compute() {
-            minimax.makeMove(move);
-            Double score = null;
-            try {
-                score = minimax.negamaxScore(depth, cutoff);
-            } catch (InterruptedException | ExecutionException e) {}
-            minimax.unmakeMove(move);
-            return cutoff.check(score);
-        }
-        
-    }
-    
-    static class Cutoff {
+    static class Cutoff<M extends Move> {
 
         public volatile Double alpha;
         public volatile Double beta;
@@ -194,27 +82,110 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
             this.beta = beta;
         }
         
-        public Cutoff inverse() {
-            return new Cutoff(-beta, -alpha);
+        public Cutoff<M> inverse() {
+            return new Cutoff<M>(-beta, -alpha);
         }
 
-        public Double check(double score) {
+        public boolean check(double score, MoveWrapper<M> wrapper, M move) {
             if (score > alpha) {
                 synchronized (this) {
                     // double checked locking
                     if (score > alpha) {
                         alpha = score;
+	                    if (wrapper != null) {
+	                        wrapper.move = move;
+	                    }
                         if (alpha >= beta) {
                             // cutoff
-                            return null;
+                            return true;
                         }
                     }
                 }
             }
-            return score;
+            return false;
         }
         
     }
     
+    static class NegamaxAction<M extends Move> extends RecursiveTask<Double> {
+
+		private static final long serialVersionUID = 1L;
+		
+		private final MoveWrapper<M> wrapper;
+		private final ParallelMinimax<M> minimax;
+		private final int depth;
+		private final Cutoff<M> cutoff;
+		private final M move;
+
+		public NegamaxAction(ParallelMinimax<M> minimax, MoveWrapper<M> wrapper, M move, int depth, Cutoff<M> cutoff) {
+    		this.wrapper = wrapper;
+            this.depth = depth;
+            this.minimax = minimax;
+            this.cutoff = cutoff;
+            this.move = move;
+    	}
+
+		@Override
+		protected Double compute() {
+			if (cutoff.alpha >= cutoff.beta) {
+				return null;
+			}
+            try {
+                return negamax(wrapper, depth, cutoff);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+            return cutoff.alpha;
+		}
+    	
+	    private double negamax(final MoveWrapper<M> wrapper, final int depth, final Cutoff<M> cutoff) throws InterruptedException, ExecutionException {
+	        if (depth == 0 || minimax.isOver()) {
+	            return minimax.evaluate();
+	        }
+	        Collection<M> moves = minimax.getPossibleMoves();
+	        if (moves.isEmpty()) {
+	        	minimax.next();
+	        	double score = - negamax(null, depth - 1, cutoff.inverse());
+	        	minimax.previous();
+	        	return score;
+	        } else {
+	            boolean first = true;
+	            Collection<NegamaxAction<M>> tasks = new LinkedList<>();
+	            for (M move : moves) {
+	                if (first || pool.getQueuedTaskCount() > 0) {
+	                    // young brother wait...
+	                    // reduce alpha beta window
+	                    // assume it's the best possible move
+	                    first = false;
+	                    minimax.makeMove(move);
+	                    double score = - negamax(null, depth - 1, cutoff.inverse());
+	                    minimax.unmakeMove(move);
+	                    if (cutoff.check(score, wrapper, move)) {
+	                    	break;
+	                    }
+	                } else {
+	                	ParallelMinimax<M> clone = minimax.clone();
+	                	clone.makeMove(move);
+	                	NegamaxAction<M> task = new NegamaxAction<M>(clone, null, move, depth - 1, cutoff.inverse());
+	                    task.fork();
+	                    // put task in the queue for the current depth
+	                    tasks.add(task);
+	                }
+	            }
+	            // await termination of all brothers
+	            // once all done alpha == best score
+	            for (NegamaxAction<M> task : tasks) {
+	                if (task.join() == null || cutoff.check(- task.getRawResult(), wrapper, task.move)) {
+	                    // tasks has cancel automatically
+	                	// or task lead to a cutoff...
+	                	// we don't need to wait child task
+                		break;
+                	}
+	            }
+	            return cutoff.alpha;
+	        }
+	    }
+	    
+    }
     
 }
