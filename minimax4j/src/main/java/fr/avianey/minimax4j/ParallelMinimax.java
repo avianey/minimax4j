@@ -59,7 +59,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
         MoveWrapper<M> wrapper = new MoveWrapper<>();
-        Cutoff cutoff = new Cutoff(-maxEvaluateValue(), maxEvaluateValue());
+        Cutoff<M> cutoff = new Cutoff<>(-maxEvaluateValue(), maxEvaluateValue());
         switch (getAlgo()) {
         default:
         case NEGAMAX:
@@ -72,7 +72,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
     @Override
     public abstract ParallelMinimax<M> clone();
         
-    static class Cutoff<M extends Move> {
+    private static final class Cutoff<M extends Move> {
 
         public volatile Double alpha;
         public volatile Double beta;
@@ -107,7 +107,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
         
     }
     
-    static class NegamaxAction<M extends Move> extends RecursiveTask<Double> {
+    private static final class NegamaxAction<M extends Move> extends RecursiveTask<Double> {
 
 		private static final long serialVersionUID = 1L;
 		
@@ -145,7 +145,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
 	        Collection<M> moves = minimax.getPossibleMoves();
 	        if (moves.isEmpty()) {
 	        	minimax.next();
-	        	double score = - negamax(null, depth - 1, cutoff.inverse());
+	        	double score = -negamax(null, depth - 1, cutoff.inverse());
 	        	minimax.previous();
 	        	return score;
 	        } else {
@@ -158,30 +158,31 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
 	                    // assume it's the best possible move
 	                    first = false;
 	                    minimax.makeMove(move);
-	                    double score = - negamax(null, depth - 1, cutoff.inverse());
+	                    double score = -negamax(null, depth - 1, cutoff.inverse());
 	                    minimax.unmakeMove(move);
 	                    if (cutoff.check(score, wrapper, move)) {
 	                    	break;
 	                    }
 	                } else {
+	                	// at least one worker free
+	                	// let send some work to it !
 	                	ParallelMinimax<M> clone = minimax.clone();
 	                	clone.makeMove(move);
 	                	NegamaxAction<M> task = new NegamaxAction<M>(clone, null, move, depth - 1, cutoff.inverse());
 	                    task.fork();
-	                    // put task in the queue for the current depth
 	                    tasks.add(task);
 	                }
 	            }
 	            // await termination of all brothers
 	            // once all done alpha == best score
 	            for (NegamaxAction<M> task : tasks) {
-	                if (task.join() == null || cutoff.check(- task.getRawResult(), wrapper, task.move)) {
-	                    // tasks has cancel automatically
-	                	// or task lead to a cutoff...
-	                	// we don't need to wait child task
+	                if (task.join() == null || cutoff.check(-task.getRawResult(), wrapper, task.move)) {
+	                    // tasks has cancel automatically or task lead to a cutoff...
+	                	// we don't need to wait for other brothers
                 		break;
                 	}
 	            }
+	            // sub tree done !
 	            return cutoff.alpha;
 	        }
 	    }
