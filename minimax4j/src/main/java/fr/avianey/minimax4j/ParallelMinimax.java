@@ -26,6 +26,12 @@ import java.util.concurrent.RecursiveTask;
  * along with minimax4j. If not, see <http://www.gnu.org/licenses/lgpl.html>
  */
 
+/**
+ * A {@link Minimax} implementation that distribute the tree exploration across processors.<br/>
+ * 
+ * @author antoine vianey
+ * @param <M>
+ */
 public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
     
     private static final ForkJoinPool pool = new ForkJoinPool();
@@ -74,8 +80,8 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
         
     private static final class Cutoff<M extends Move> {
 
-        public volatile Double alpha;
-        public volatile Double beta;
+        public double alpha;
+        public double beta;
         
         public Cutoff(double alpha, double beta) {
             this.alpha = alpha;
@@ -88,18 +94,13 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
 
         public boolean check(double score, MoveWrapper<M> wrapper, M move) {
             if (score > alpha) {
-                synchronized (this) {
-                    // double checked locking
-                    if (score > alpha) {
-                        alpha = score;
-	                    if (wrapper != null) {
-	                        wrapper.move = move;
-	                    }
-                        if (alpha >= beta) {
-                            // cutoff
-                            return true;
-                        }
-                    }
+                alpha = score;
+                if (wrapper != null) {
+                    wrapper.move = move;
+                }
+                if (alpha >= beta) {
+                    // cutoff
+                    return true;
                 }
             }
             return false;
@@ -179,6 +180,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
 	                if (task.join() == null || cutoff.check(-task.getRawResult(), wrapper, task.move)) {
 	                    // tasks has cancel automatically or task lead to a cutoff...
 	                	// we don't need to wait for other brothers
+	                	// other brothers will cancel automatically!
                 		break;
                 	}
 	            }
