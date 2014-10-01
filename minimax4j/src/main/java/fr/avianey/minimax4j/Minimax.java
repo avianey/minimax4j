@@ -81,7 +81,7 @@ public abstract class Minimax<M extends Move> {
     
     /**
      * Creates a new IA using the {@link Algorithm#NEGAMAX} algorithm<br/>
-     * {@link Algorithm#NEGASCOUT} performs slowly on several tests at the moment...
+     * {@link Algorithm#NEGASCOUT} performs slowly in case of a weak move ordering...
      */
     public Minimax() {
         this(Algorithm.NEGAMAX);
