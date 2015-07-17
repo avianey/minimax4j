@@ -188,7 +188,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
 	                if (task.join() == null) { 
 	                	// task cancelled due to a brother's cutoff
 	                	// we don't need to wait for other brothers
-	                	// other brothers will cancel automatically!
+	                	// they will cancel automatically...
 	                	break;
 	                } else if (-task.getRawResult() <= alpha) {
 	                	// not interesting
