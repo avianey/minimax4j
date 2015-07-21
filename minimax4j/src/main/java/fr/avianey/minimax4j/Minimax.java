@@ -1,13 +1,8 @@
-package fr.avianey.minimax4j;
-
-import java.util.Collection;
-import java.util.List;
-
 /*
  * This file is part of minimax4j.
  * <https://github.com/avianey/minimax4j>
  *  
- * Copyright (C) 2012, 2013, 2014 Antoine Vianey
+ * Copyright (C) 2012 - 2015 Antoine Vianey
  * 
  * minimax4j is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,6 +17,10 @@ import java.util.List;
  * You should have received a copy of the GNU Lesser General Public License
  * along with minimax4j. If not, see <http://www.gnu.org/licenses/lgpl.html>
  */
+package fr.avianey.minimax4j;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Abstract class implementing minimax and derivated decision rules for two-person 

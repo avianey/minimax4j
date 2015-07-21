@@ -1,16 +1,8 @@
-package fr.avianey.minimax4j;
-
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveTask;
-
 /*
  * This file is part of minimax4j.
  * <https://github.com/avianey/minimax4j>
  *  
- * Copyright (C) 2012, 2013, 2014 Antoine Vianey
+ * Copyright (C) 2012 - 2015 Antoine Vianey
  * 
  * minimax4j is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,14 +17,24 @@ import java.util.concurrent.RecursiveTask;
  * You should have received a copy of the GNU Lesser General Public License
  * along with minimax4j. If not, see <http://www.gnu.org/licenses/lgpl.html>
  */
+package fr.avianey.minimax4j;
+
+import static fr.avianey.minimax4j.Minimax.Algorithm.NEGAMAX;
+import static java.lang.Runtime.getRuntime;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveTask;
 
 /**
  * A {@link Minimax} implementation that distribute the tree exploration across processors.<br/>
  * 
- * @author antoine vianey
  * @param <M>
+ * @author antoine vianey
  */
-public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
+public abstract class ParallelMinimax<M extends Move> extends Minimax<M> implements Cloneable {
     
 	private ForkJoinPool pool;
 
@@ -41,7 +43,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
      * {@link Algorithm#NEGASCOUT} performs slowly in case of a weak move ordering...
      */
     public ParallelMinimax() {
-        this(Algorithm.NEGAMAX, Runtime.getRuntime().availableProcessors());
+        this(NEGAMAX, getRuntime().availableProcessors());
     }
     
     /**
@@ -49,7 +51,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
      * @param parallelism
      */
     public ParallelMinimax(int parallelism) {
-        this(Algorithm.NEGAMAX, parallelism);
+        this(NEGAMAX, parallelism);
     }
     
     /**
@@ -58,7 +60,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
      * @see Algorithm
      */
     public ParallelMinimax(Algorithm algo) {
-        this(algo, Runtime.getRuntime().availableProcessors());
+        this(algo, getRuntime().availableProcessors());
     }
     
     /**
@@ -84,7 +86,8 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
     }
     
     /**
-     * Get the best {@link Move} for the given search depth
+     * Get the best {@link Move} for the given search depth<br/>
+     * This method SHOULD be called from one thread at the time.
      * @param depth The search depth (must be > 0)
      * @return
      * @throws ExecutionException 
@@ -135,6 +138,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> {
             try {
                 return negamax(wrapper, depth, alpha, beta);
             } catch (InterruptedException | ExecutionException e) {
+                // TODO propagate ?
                 e.printStackTrace();
             }
             return alpha;
