@@ -108,11 +108,20 @@
             </plugin>
         </plugins>
     </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
     
     <!-- 
-    mvn clean release:clean -s settings.xml
-    mvn release:prepare -s settings.xml
-    manual push
+    mvn clean release:clean
+    mvn release:prepare
+    push
     mvn release:perform -s settings.xml
     -->
     <profiles>

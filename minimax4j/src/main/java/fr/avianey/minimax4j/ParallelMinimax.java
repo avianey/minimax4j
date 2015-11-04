@@ -89,7 +89,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> impleme
      * Get the best {@link Move} for the given search depth<br/>
      * This method SHOULD be called from one thread at the time.
      * @param depth The search depth (must be > 0)
-     * @return
+     * @return The best possible move
      * @throws ExecutionException 
      * @throws InterruptedException 
      */
@@ -101,7 +101,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> impleme
         switch (getAlgo()) {
         default:
         case NEGAMAX:
-            pool.invoke(new NegamaxAction<M>(this, wrapper, null, depth, -maxEvaluateValue(), maxEvaluateValue()));
+            pool.invoke(new NegamaxAction<>(this, wrapper, null, depth, -maxEvaluateValue(), maxEvaluateValue()));
             break;
         }
         return wrapper.move;
@@ -181,7 +181,7 @@ public abstract class ParallelMinimax<M extends Move> extends Minimax<M> impleme
 	                	// let send some work to it !
 	                	ParallelMinimax<M> clone = minimax.clone();
 	                	clone.makeMove(move);
-	                	NegamaxAction<M> task = new NegamaxAction<M>(clone, null, move, depth - 1, -beta, -alpha);
+	                	NegamaxAction<M> task = new NegamaxAction<>(clone, null, move, depth - 1, -beta, -alpha);
 	                    task.fork();
 	                    tasks.add(task);
 	                }

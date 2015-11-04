@@ -38,13 +38,12 @@ import java.util.TreeMap;
  * @param <M> the {@link Move} implementation
  * @param <T> the transposition table key
  * @param <G> the transposition group implementation or {@link Void} if grouping is not necessary. 
- * @see Transposition
  */
 public abstract class TranspositionMinimax<M extends Move, T, G extends Comparable<G>> extends Minimax<M> {
 	
 	/**
 	 * Factory for transposition table.
-	 * Unless {@link TranspositionMinimax#TranspositionIA(fr.avianey.minimax4j.Minimax.Algorithm, TranspositionTableFactory)}
+	 * Unless {@link #TranspositionMinimax(fr.avianey.minimax4j.Minimax.Algorithm, TranspositionTableFactory)}
 	 * is used as super constructor, an {@link HashMap} is used as default implementation.
 	 * 
 	 * @author antoine vianey
