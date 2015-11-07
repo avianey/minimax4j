@@ -38,7 +38,7 @@ import static fr.avianey.minimax4j.ia.Logic.GRID_VALUES;
  *
  * @author antoine vianey
  */
-final class State {
+final class State implements Cleanable {
 
     private final int nbPlayers;
     private final double[] grid = new double[GRID_SIZE];
@@ -47,10 +47,11 @@ final class State {
 
     State(int nbPlayers) {
         this.nbPlayers = nbPlayers;
-        reset();
+        clean();
     }
 
-    void reset() {
+    @Override
+    public void clean() {
         Arrays.fill(grid, EMPTY_CELL);
         turn = 0;
         currentPlayer = 0;
@@ -90,8 +91,9 @@ final class State {
 
     void makeMove(IAMove move) {
         // take position
+        grid[move.getPosition()] = currentPlayer;
         // add the fraction of the score associated with the turn
-        grid[move.getPosition()] = currentPlayer + (((GRID_VALUES[move.getPosition()] / (double) GRID_SIZE) * (GRID_SIZE - turn - 1)) / (double) GRID_SIZE);
+        grid[move.getPosition()] += (((GRID_VALUES[move.getPosition()] / (double) GRID_SIZE) * (GRID_SIZE - turn - 1)) / (double) GRID_SIZE);
         turn++;
         // move to next player
         next();

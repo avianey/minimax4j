@@ -35,7 +35,7 @@ import java.util.List;
  *
  * @author antoine vianey
  */
-public class ParallelIA extends ParallelMinimax<IAMove> {
+public class ParallelIA extends ParallelMinimax<IAMove> implements Cleanable {
 
     private final Logic logic;
     private final State state;
@@ -50,6 +50,11 @@ public class ParallelIA extends ParallelMinimax<IAMove> {
         super(ia);
         logic = ia.logic;
         state = ia.state.clone();
+    }
+
+    @Override
+    public void clean() {
+        state.clean();
     }
 
     @Override
@@ -96,4 +101,5 @@ public class ParallelIA extends ParallelMinimax<IAMove> {
     public void previous() {
         state.previous();
     }
+
 }

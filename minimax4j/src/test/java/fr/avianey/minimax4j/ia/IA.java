@@ -40,7 +40,7 @@ import java.util.List;
  *
  * @author antoine vianey
  */
-public class IA extends Minimax<IAMove> {
+public class IA extends Minimax<IAMove> implements Cleanable {
 
     private final Logic logic;
     private final State state;
@@ -49,6 +49,11 @@ public class IA extends Minimax<IAMove> {
         super(algo);
         logic = new Logic(nbPlayers);
         state = new State(nbPlayers);
+    }
+
+    @Override
+    public void clean() {
+        state.clean();
     }
 
     @Override
