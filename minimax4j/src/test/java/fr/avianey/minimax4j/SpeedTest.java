@@ -27,54 +27,372 @@
 package fr.avianey.minimax4j;
 
 import com.google.common.base.Stopwatch;
-import fr.avianey.minimax4j.ia.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
-import static fr.avianey.minimax4j.Minimax.Algorithm.*;
-import static org.junit.Assert.assertEquals;
+import static fr.avianey.minimax4j.Minimax.Algorithm.NEGAMAX;
 
+@RunWith(Parameterized.class)
 public class SpeedTest {
 
-    private static final int DEPTH = 3;
+    private static final int TURNS = 64;
+    private static final int COST = 1; // 1 ms
+    private static final String FORMAT = "|\t%s\t|\t%s\t|\t%d\t|\t%d\t|\t%d\t|\t%d\t|\t%d\t|\t%d\t|\t%d\t|\t%d\t|";
 
-    private Minimax<IAMove> minimax;
-    private Minimax<IAMove> parallel;
+    private TestIA ia;
+
+    private final int depth;
+
+    public SpeedTest(Class<? extends Minimax<VoidMove>> iaClass,
+                     int depth, int branchingFactor,
+                     long getPossibleMovesCost, long makeMoveCost, long unmakeMoveCost,
+                     long evaluateCost, long nextPreviousCost, long cloneCost) {
+        this.depth = depth;
+        if (BasicTestIA.class.equals(iaClass)) {
+            ia = new BasicTestIA(branchingFactor,
+                    COST * makeMoveCost, COST * unmakeMoveCost,
+                    COST * getPossibleMovesCost, COST * evaluateCost,
+                    COST * nextPreviousCost, COST * cloneCost);
+        }
+        if (ParallelTestIA.class.equals(iaClass)) {
+            ia = new ParallelTestIA(branchingFactor,
+                    COST * makeMoveCost, COST * unmakeMoveCost,
+                    COST * getPossibleMovesCost, COST * evaluateCost,
+                    COST * nextPreviousCost, COST * cloneCost);
+        }
+    }
+
+
+    @Parameters
+    public static Collection<Object[]> params() {
+        return Arrays.asList(
+//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 1, 1, 1, 1},
+//                new Object[]{BasicTestIA.class, 3, 4, 2, 1, 1, 1, 1, 1},
+//                new Object[]{BasicTestIA.class, 3, 4, 1, 2, 1, 1, 1, 1},
+//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 2, 1, 1, 1},
+//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 1, 2, 1, 1},
+//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 1, 1, 2, 1},
+//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 1, 1, 1, 2},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 2, 1, 1, 1, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 2, 1, 1, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 2, 1, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 2, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 2, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 1, 2}
+        );
+    }
 
     @Before
-    public void setup() {
-        minimax = new IA(NEGAMAX, 2);
-        parallel = new ParallelIA(NEGAMAX, 2);
+    public void warmup() throws IllegalAccessException, InstantiationException {
+        ia.clear();
+        dryRun((Minimax) ia);
     }
 
     @Test
-    public void execute() {
-        System.out.println("Available processors : " + Runtime.getRuntime().availableProcessors());
-        run(minimax);
-        run(parallel);
-    }
-
-    public void run(Minimax<IAMove> minimax) {
-        // warmup
-        dryRun(minimax);
-        ((Cleanable) minimax).clean();
-        // test
+    public void run() throws IllegalAccessException, InstantiationException {
         Stopwatch watch = Stopwatch.createStarted();
-        dryRun(minimax);
+        ia.clear();
+        dryRun((Minimax) ia);
         watch.stop();
-        System.out.println(minimax.getClass().getSimpleName() + " : " + watch);
+        System.out.println(String.format(FORMAT, ia.getClass().getSuperclass().getSimpleName(), watch,
+                depth,
+                ia.getBranchingFactor(),
+                ia.getGetPossibleMovesCost(),
+                ia.getMakeMoveCost(),
+                ia.getUnmakeMoveCost(),
+                ia.getEvaluateCost(),
+                ia.getNextPreviousCost(),
+                ia.getCloneCost()));
     }
 
-    private void dryRun(Minimax<IAMove> minimax) {
+    private void dryRun(Minimax<VoidMove> minimax) {
         while (!minimax.isOver()) {
-            IAMove move = minimax.getBestMove(DEPTH);
+            VoidMove move = minimax.getBestMove(depth);
             minimax.makeMove(move);
+        }
+    }
+
+    private static class VoidMove implements Move {}
+
+    private static class VoidMoves extends AbstractList<VoidMove> {
+
+        private final VoidMove move = new VoidMove();
+        private final int size;
+
+        private VoidMoves(int size) {
+            this.size = size;
+        }
+
+        @Override
+        public VoidMove get(int i) {
+            return move;
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+    }
+
+    private interface TestIA {
+
+        int getBranchingFactor();
+
+        long getMakeMoveCost();
+
+        long getUnmakeMoveCost();
+
+        long getGetPossibleMovesCost();
+
+        long getEvaluateCost();
+
+        long getNextPreviousCost();
+
+        long getCloneCost();
+
+        void clear();
+    }
+
+    private static class BasicTestIA extends BasicMinimax<VoidMove> implements TestIA {
+
+        private final int branchingFactor;
+        private final long makeMoveCost;
+        private final long unmakeMoveCost;
+        private final long getPossibleMovesCost;
+        private final long evaluateCost;
+        private final long nextPreviousCost;
+        private final long cloneCost;
+
+        private int turn = 0;
+
+        public BasicTestIA(int branchingFactor,
+                      long makeMoveCost, long unmakeMoveCost, long getPossibleMovesCost,
+                      long evaluateCost, long nextPreviousCost, long cloneCost) {
+            super(NEGAMAX);
+            this.branchingFactor = branchingFactor;
+            this.makeMoveCost = makeMoveCost;
+            this.unmakeMoveCost = unmakeMoveCost;
+            this.getPossibleMovesCost = getPossibleMovesCost;
+            this.evaluateCost = evaluateCost;
+            this.nextPreviousCost = nextPreviousCost;
+            this.cloneCost = cloneCost;
+        }
+
+        public void clear() {
+            this.turn = 0;
+        }
+
+        @Override
+        public boolean isOver() {
+            return turn == TURNS;
+        }
+
+        @Override
+        public void makeMove(VoidMove move) {
+            simulateCost(makeMoveCost);
+            turn++;
+        }
+
+        @Override
+        public void unmakeMove(VoidMove move) {
+            simulateCost(unmakeMoveCost);
+            turn--;
+        }
+
+        @Override
+        public List<VoidMove> getPossibleMoves() {
+            simulateCost(getPossibleMovesCost);
+            return new VoidMoves(branchingFactor);
+        }
+
+        @Override
+        public double evaluate() {
+            simulateCost(evaluateCost);
+            return 0;
+        }
+
+        @Override
+        public double maxEvaluateValue() {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
+        public void next() {
+            simulateCost(nextPreviousCost);
+        }
+
+        @Override
+        public void previous() {
+            simulateCost(nextPreviousCost);
+        }
+
+        @Override
+        public int getBranchingFactor() {
+            return branchingFactor;
+        }
+
+        @Override
+        public long getMakeMoveCost() {
+            return makeMoveCost;
+        }
+
+        @Override
+        public long getUnmakeMoveCost() {
+            return unmakeMoveCost;
+        }
+
+        @Override
+        public long getGetPossibleMovesCost() {
+            return getPossibleMovesCost;
+        }
+
+        @Override
+        public long getEvaluateCost() {
+            return evaluateCost;
+        }
+
+        @Override
+        public long getNextPreviousCost() {
+            return nextPreviousCost;
+        }
+
+        @Override
+        public long getCloneCost() {
+            return cloneCost;
+        }
+    }
+
+    private static class ParallelTestIA extends ParallelMinimax<VoidMove> implements TestIA {
+
+        private final int branchingFactor;
+        private final long makeMoveCost;
+        private final long unmakeMoveCost;
+        private final long getPossibleMovesCost;
+        private final long evaluateCost;
+        private final long nextPreviousCost;
+        private final long cloneCost;
+
+        private int turn = 0;
+
+        public ParallelTestIA(int branchingFactor,
+                      long makeMoveCost, long unmakeMoveCost, long getPossibleMovesCost,
+                      long evaluateCost, long nextPreviousCost, long cloneCost) {
+            super(NEGAMAX);
+            this.branchingFactor = branchingFactor;
+            this.makeMoveCost = makeMoveCost;
+            this.unmakeMoveCost = unmakeMoveCost;
+            this.getPossibleMovesCost = getPossibleMovesCost;
+            this.evaluateCost = evaluateCost;
+            this.nextPreviousCost = nextPreviousCost;
+            this.cloneCost = cloneCost;
+        }
+
+        public void clear() {
+            this.turn = 0;
+        }
+
+        @Override
+        public boolean isOver() {
+            return turn == TURNS;
+        }
+
+        @Override
+        public void makeMove(VoidMove move) {
+            simulateCost(makeMoveCost);
+            turn++;
+        }
+
+        @Override
+        public void unmakeMove(VoidMove move) {
+            simulateCost(unmakeMoveCost);
+            turn--;
+        }
+
+        @Override
+        public List<VoidMove> getPossibleMoves() {
+            simulateCost(getPossibleMovesCost);
+            return new VoidMoves(branchingFactor);
+        }
+
+        @Override
+        public double evaluate() {
+            simulateCost(evaluateCost);
+            return 0;
+        }
+
+        @Override
+        public double maxEvaluateValue() {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
+        public void next() {
+            simulateCost(nextPreviousCost);
+        }
+
+        @Override
+        public void previous() {
+            simulateCost(nextPreviousCost);
+        }
+
+        @Override
+        public ParallelMinimax<VoidMove> clone() {
+            simulateCost(cloneCost);
+            ParallelTestIA ia = new ParallelTestIA(branchingFactor, makeMoveCost, unmakeMoveCost, getPossibleMovesCost, evaluateCost, nextPreviousCost, cloneCost);
+            ia.turn = turn;
+            return ia;
+        }
+
+        @Override
+        public int getBranchingFactor() {
+            return branchingFactor;
+        }
+
+        @Override
+        public long getMakeMoveCost() {
+            return makeMoveCost;
+        }
+
+        @Override
+        public long getUnmakeMoveCost() {
+            return unmakeMoveCost;
+        }
+
+        @Override
+        public long getGetPossibleMovesCost() {
+            return getPossibleMovesCost;
+        }
+
+        @Override
+        public long getEvaluateCost() {
+            return evaluateCost;
+        }
+
+        @Override
+        public long getNextPreviousCost() {
+            return nextPreviousCost;
+        }
+
+        @Override
+        public long getCloneCost() {
+            return cloneCost;
+        }
+    }
+
+    private static void simulateCost(long cost) {
+        try {
+            Thread.sleep(cost);
+        } catch (InterruptedException e) {
+            // ignore
         }
     }
 

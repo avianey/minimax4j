@@ -46,7 +46,7 @@ import java.util.TreeMap;
  * @param <T> the transposition table key
  * @param <G> the transposition group implementation or {@link Void} if grouping is not necessary. 
  */
-public abstract class TranspositionMinimax<M extends Move, T, G extends Comparable<G>> extends Minimax<M> {
+public abstract class TranspositionMinimax<M extends Move, T, G extends Comparable<G>> extends BasicMinimax<M> {
 	
 	/**
 	 * Factory for transposition table.
@@ -68,7 +68,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
         this(new TranspositionTableFactory<T>() {
 			@Override
             public Map<T, Double> newTransposition() {
-				return new HashMap<T, Double>();
+				return new HashMap<>();
 			}
         });
     }
@@ -83,7 +83,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
         this(algo, new TranspositionTableFactory<T>() {
             @Override
             public Map<T, Double> newTransposition() {
-                return new HashMap<T, Double>();
+                return new HashMap<>();
             }
         });
     }
@@ -100,7 +100,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
         this.transpositionTableFactory = new TranspositionTableFactory<T>() {
 			@Override
 			public Map<T, Double> newTransposition() {
-				return new HashMap<T, Double>(initialCapacity);
+				return new HashMap<>(initialCapacity);
 			}
         };
     }
@@ -111,7 +111,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
         this.transpositionTableFactory = new TranspositionTableFactory<T>() {
 			@Override
 			public Map<T, Double> newTransposition() {
-				return new HashMap<T, Double>(initialCapacity, loadFactor);
+				return new HashMap<>(initialCapacity, loadFactor);
 			}
         };
     }
@@ -133,16 +133,16 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
     	Class<G> cls = (Class<G>) ((ParameterizedType) t).getActualTypeArguments()[2];
         if (Comparable.class.isAssignableFrom(cls)) {
         	// the transposition Group type is Comparable
-        	return new TreeMap<G, Map<T,Double>>();
+        	return new TreeMap<>();
         } else if (cls.isAssignableFrom(Void.class)) {
         	// no transposition Group required
         	// use everything-is-equal Comparator
-        	return new TreeMap<G, Map<T,Double>>(new Comparator<G>() {
-				@Override
-				public int compare(G o1, G o2) {
-					return 0;
-				}
-        	});
+        	return new TreeMap<>(new Comparator<G>() {
+                @Override
+                public int compare(G o1, G o2) {
+                    return 0;
+                }
+            });
         } else {
         	throw new IllegalArgumentException("The transposition group type : " + cls.getSimpleName() + " is neither Void nor implement the java.lang.Comparable interface.");
         }
@@ -218,15 +218,13 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
      * otherwise the stored value for the transposition may reflect the strength of the other player...
      * @return
      *      the hash for the current configuration
-     *      
-     * @see Transposition
      */
     public abstract T getTransposition();
     
     /**
-     * Returns all the {@link Transposition} representing the current game configuration.
+     * Returns all the transpositions representing the current game configuration.
      * @return
-     *      a {@link Collection} of {@link Transposition}
+     *      a {@link Collection} of transpositions
      */
     public Collection<T> getSymetricTranspositions() {
         return Collections.singleton(getTransposition());
@@ -253,7 +251,7 @@ public abstract class TranspositionMinimax<M extends Move, T, G extends Comparab
      */
     public abstract G getGroup();
     
-    private final void saveTransposition(Map<T, Double> transpositionTable, double score) {
+    private void saveTransposition(Map<T, Double> transpositionTable, double score) {
         if (transpositionTable == null) {
             transpositionTable = transpositionTableFactory.newTransposition();
             transpositionTableMap.put(getGroup(), transpositionTable);
