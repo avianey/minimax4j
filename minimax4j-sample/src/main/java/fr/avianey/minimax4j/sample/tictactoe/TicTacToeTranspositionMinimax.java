@@ -112,7 +112,7 @@ public class TicTacToeTranspositionMinimax extends TranspositionMinimax<TicTacTo
 
     @Override
     public List<TicTacToeMove> getPossibleMoves() {
-        List<TicTacToeMove> moves = new ArrayList<TicTacToeMove>(9);
+        List<TicTacToeMove> moves = new ArrayList<>(9);
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 if (grid[i][j] == FREE) {

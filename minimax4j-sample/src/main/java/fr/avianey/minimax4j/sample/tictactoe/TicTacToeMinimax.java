@@ -29,6 +29,7 @@ package fr.avianey.minimax4j.sample.tictactoe;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.avianey.minimax4j.BasicMinimax;
 import fr.avianey.minimax4j.Minimax;
 
 /**
@@ -36,7 +37,7 @@ import fr.avianey.minimax4j.Minimax;
  * 
  * @author antoine vianey
  */
-public class TicTacToeMinimax extends Minimax<TicTacToeMove> {
+public class TicTacToeMinimax extends BasicMinimax<TicTacToeMove> {
 
     static final int FREE       = 0;
     static final int PLAYER_X   = 1; // X
@@ -107,7 +108,7 @@ public class TicTacToeMinimax extends Minimax<TicTacToeMove> {
 
     @Override
     public List<TicTacToeMove> getPossibleMoves() {
-        List<TicTacToeMove> moves = new ArrayList<TicTacToeMove>(9);
+        List<TicTacToeMove> moves = new ArrayList<>(9);
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 if (grid[i][j] == FREE) {

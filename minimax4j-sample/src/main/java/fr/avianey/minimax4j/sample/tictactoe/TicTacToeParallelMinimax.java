@@ -118,7 +118,7 @@ public class TicTacToeParallelMinimax extends ParallelMinimax<TicTacToeMove> {
 
     @Override
     public List<TicTacToeMove> getPossibleMoves() {
-        List<TicTacToeMove> moves = new ArrayList<TicTacToeMove>(9);
+        List<TicTacToeMove> moves = new ArrayList<>(9);
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 if (grid[i][j] == FREE) {
@@ -185,7 +185,7 @@ public class TicTacToeParallelMinimax extends ParallelMinimax<TicTacToeMove> {
 
     @Override
     public ParallelMinimax<TicTacToeMove> clone() {
-        return new TicTacToeParallelMinimax(getAlgo(), grid, turn, currentPlayer);
+        return new TicTacToeParallelMinimax(getAlgorithm(), grid, turn, currentPlayer);
     }
 
 }
