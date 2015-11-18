@@ -49,36 +49,6 @@ import java.util.List;
 public interface IA<M extends Move> {
     
     /**
-     * Available decision rules
-     * 
-     * @author antoine vianey
-     */
-    enum Algorithm {
-        /** 
-         * The IA algorithm (slowest)
-         * @see http://en.wikipedia.org/wiki/IA
-         **/
-        MINIMAX,
-        /** 
-         * The Mininma algorithm with alpha-beta pruning 
-         * @see http://en.wikipedia.org/wiki/Alpha-beta_pruning
-         **/
-        ALPHA_BETA,
-        /** 
-         * The Negamax algorithm with alpha-beta pruning
-         * @see http://en.wikipedia.org/wiki/Negamax
-         **/
-        NEGAMAX,
-        /** 
-         * The Negascout algorithm (fastest when strong move ordering is provided)<br/>
-         * Also called Principal Variation Search...
-         * @see IA#getPossibleMoves()
-         * @see http://en.wikipedia.org/wiki/Negascout
-         **/
-        NEGASCOUT;
-    }
-    
-    /**
      * Get the best {@link Move} for the given search depth<br/>
      * This methods iterates over {@link #getPossibleMoves()} to find the best one.
      * If two or more {@link Move} lead to the same best evaluation, the first one is returned.
