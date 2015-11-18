@@ -26,7 +26,6 @@
  */
 package fr.avianey.minimax4j;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -47,7 +46,7 @@ import java.util.List;
  *
  * @param <M> Implementation of the Move interface to use
  */
-public interface Minimax<M extends Move> {
+public interface IA<M extends Move> {
     
     /**
      * Available decision rules
@@ -56,8 +55,8 @@ public interface Minimax<M extends Move> {
      */
     enum Algorithm {
         /** 
-         * The Minimax algorithm (slowest) 
-         * @see http://en.wikipedia.org/wiki/Minimax
+         * The IA algorithm (slowest)
+         * @see http://en.wikipedia.org/wiki/IA
          **/
         MINIMAX,
         /** 
@@ -73,7 +72,7 @@ public interface Minimax<M extends Move> {
         /** 
          * The Negascout algorithm (fastest when strong move ordering is provided)<br/>
          * Also called Principal Variation Search...
-         * @see Minimax#getPossibleMoves()
+         * @see IA#getPossibleMoves()
          * @see http://en.wikipedia.org/wiki/Negascout
          **/
         NEGASCOUT;

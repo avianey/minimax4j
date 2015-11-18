@@ -1,9 +1,9 @@
 /*
  * This file is part of minimax4j.
  * <https://github.com/avianey/minimax4j>
- *  
- * The MIT License (MIT)
  *
+ * The MIT License (MIT)
+
  * Copyright (c) 2015 Antoine Vianey
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,26 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.impl;
+
+import fr.avianey.minimax4j.Move;
 
 /**
- * 
- * Implement this interface to describe a Move in your game.<br>
- * A typical implementation for a Chess game would be :
- * <ul>
- * <li>The color of the piece</li>
- * <li>The type of the piece (king, queen, pawn, ...)</li>
- * <li>The position before the move</li>
- * <li>The position after the move</li>
- * </ul>
- * Additional information might be necessary to implement the abstract {@link IA#unmakeMove(Move)} method of the {@link IA} class :
- * <ul>
- * <li>Taken pieces</li>
- * <li>...</li>
- * </ul>
- * 
- * @author antoine vianey
- * @see IA#unmakeMove(Move)
+ * Wrapper used to propagate the best move up the tree exploration.
  *
+ * @param <M> the type of move to propagate
  */
-public interface Move {}
+final class MoveWrapper<M extends Move> {
+    public M move;
+}

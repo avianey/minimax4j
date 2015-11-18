@@ -26,22 +26,21 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.ParallelMinimax;
+import fr.avianey.minimax4j.impl.ParallelNegamax;
 
 import java.util.List;
 
 /**
- * Parallel version of the test {@code IA}.
+ * Parallel version of the test {@code BasicMinimax}.
  *
  * @author antoine vianey
  */
-public class ParallelIA extends ParallelMinimax<IAMove> implements Cleanable {
+public class ParallelIA extends ParallelNegamax<IAMove> implements Cleanable {
 
     private final Logic logic;
     private final State state;
 
-    public ParallelIA(Algorithm algo, int nbPlayers) {
-        super(algo);
+    public ParallelIA(int nbPlayers) {
         logic = new Logic(nbPlayers);
         state = new State(nbPlayers);
     }
@@ -58,7 +57,7 @@ public class ParallelIA extends ParallelMinimax<IAMove> implements Cleanable {
     }
 
     @Override
-    public ParallelMinimax<IAMove> clone() {
+    public ParallelNegamax<IAMove> clone() {
         return new ParallelIA(this);
     }
 

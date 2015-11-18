@@ -24,7 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.impl;
+
+import fr.avianey.minimax4j.IA;
+import fr.avianey.minimax4j.Move;
 
 import java.util.Collection;
 import java.util.List;
@@ -47,19 +50,15 @@ import java.util.List;
  *
  * @param <M> Implementation of the Move interface to use
  */
-public abstract class BasicMinimax<M extends Move> implements Minimax<M> {
+public abstract class Minimax<M extends Move> implements IA<M> {
 
     private final Algorithm algo;
-
-    static final class MoveWrapper<M extends Move> {
-        public M move;
-    }
 
     /**
      * Creates a new IA using the {@link Algorithm#NEGAMAX} algorithm<br/>
      * {@link Algorithm#NEGASCOUT} performs slowly in case of a weak move ordering...
      */
-    public BasicMinimax() {
+    public Minimax() {
         this(Algorithm.NEGAMAX);
     }
 
@@ -68,7 +67,7 @@ public abstract class BasicMinimax<M extends Move> implements Minimax<M> {
      * @param algo The decision rule to use
      * @see Algorithm
      */
-    public BasicMinimax(Algorithm algo) {
+    public Minimax(Algorithm algo) {
         this.algo = algo;
     }
     
@@ -97,7 +96,7 @@ public abstract class BasicMinimax<M extends Move> implements Minimax<M> {
     }
     
     /**
-     * Minimax algorithm implementation :
+     * IA algorithm implementation :
      * <pre>
      * function minimax(node, depth, maximizingPlayer)
      *     if depth = 0 or node is a terminal node
@@ -137,7 +136,7 @@ public abstract class BasicMinimax<M extends Move> implements Minimax<M> {
             return score;
         }
         if (who > 0) {
-            double score = -maxEvaluateValue();
+            double score;
             double bestScore = -maxEvaluateValue();
             for (M move : moves) {
                 makeMove(move);
@@ -153,7 +152,7 @@ public abstract class BasicMinimax<M extends Move> implements Minimax<M> {
             }
             return bestScore;
         } else {
-            double score = maxEvaluateValue();
+            double score;
             double bestScore = maxEvaluateValue();
             for (M move : moves) {
                 makeMove(move);
@@ -176,7 +175,7 @@ public abstract class BasicMinimax<M extends Move> implements Minimax<M> {
 	}
 
 	/**
-     * Minimax with alpha beta algorithm :
+     * IA with alpha beta algorithm :
      * <pre>
      * function alphabeta(node, depth, &#945;, &#946;, maximizingPlayer)
 	 *     if depth = 0 or node is a terminal node
@@ -303,7 +302,7 @@ public abstract class BasicMinimax<M extends Move> implements Minimax<M> {
         	previous();
         	return score;
         } else {
-            double score = -maxEvaluateValue();
+            double score;
             for (M move : moves) {
                 makeMove(move);
                 score = negamaxScore(depth, alpha, beta);
@@ -397,12 +396,4 @@ public abstract class BasicMinimax<M extends Move> implements Minimax<M> {
         return score;
 	}
 
-    /**
-     * Get the implementation used for tree search.
-     * @return the {@link Algorithm} used.
-     */
-    public Algorithm getAlgorithm() {
-        return algo;
-    }
-    
 }

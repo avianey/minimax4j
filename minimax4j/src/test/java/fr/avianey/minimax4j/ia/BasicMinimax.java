@@ -26,7 +26,7 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.BasicMinimax;
+import fr.avianey.minimax4j.impl.Minimax;
 
 import java.util.List;
 
@@ -40,12 +40,12 @@ import java.util.List;
  *
  * @author antoine vianey
  */
-public class IA extends BasicMinimax<IAMove> implements Cleanable {
+public class BasicMinimax extends Minimax<IAMove> implements Cleanable {
 
     private final Logic logic;
     private final State state;
 
-    public IA(Algorithm algo, int nbPlayers) {
+    public BasicMinimax(Algorithm algo, int nbPlayers) {
         super(algo);
         logic = new Logic(nbPlayers);
         state = new State(nbPlayers);

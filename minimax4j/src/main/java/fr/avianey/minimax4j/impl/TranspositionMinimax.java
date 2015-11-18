@@ -24,7 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.impl;
+
+import fr.avianey.minimax4j.IA;
+import fr.avianey.minimax4j.Move;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -36,7 +39,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * An {@link Minimax} backed by a <a href="http://en.wikipedia.org/wiki/Transposition_table">transposition table</a>
+ * An {@link IA} backed by a <a href="http://en.wikipedia.org/wiki/Transposition_table">transposition table</a>
  * to speed up the search of the game tree.<br/>
  * The transposition table will not be serialized with this instance.
  * 
@@ -46,11 +49,11 @@ import java.util.TreeMap;
  * @param <T> the transposition table key
  * @param <G> the transposition group implementation or {@link Void} if grouping is not necessary. 
  */
-public abstract class TranspositionMinimax<M extends Move, T, G extends Comparable<G>> extends BasicMinimax<M> {
+public abstract class TranspositionMinimax<M extends Move, T, G extends Comparable<G>> extends Minimax<M> {
 	
 	/**
 	 * Factory for transposition table.
-	 * Unless {@link #TranspositionMinimax(fr.avianey.minimax4j.Minimax.Algorithm, TranspositionTableFactory)}
+	 * Unless {@link #TranspositionMinimax(IA.Algorithm, TranspositionTableFactory)}
 	 * is used as super constructor, an {@link HashMap} is used as default implementation.
 	 * 
 	 * @author antoine vianey
