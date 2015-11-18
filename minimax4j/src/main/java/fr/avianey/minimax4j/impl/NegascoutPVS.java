@@ -29,37 +29,33 @@ package fr.avianey.minimax4j.impl;
 import fr.avianey.minimax4j.IA;
 import fr.avianey.minimax4j.Move;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * Minimax based implementation.
+ * Negascout PVS implementation.
  *
  * <pre>
- * function minimax(node, depth, maximizingPlayer)
- *     if depth = 0 or node is a terminal node
- *         return the heuristic value of node
- *     if maximizingPlayer
- *         bestValue := -&#8734;
- *         for each child of node
- *             val := minimax(child, depth - 1, FALSE)
- *             bestValue := max(bestValue, val)
- *         return bestValue
- *     else
- *         bestValue := +&#8734;
- *         for each child of node
- *             val := minimax(child, depth - 1, TRUE)
- *             bestValue := min(bestValue, val)
- *         return bestValue
+ * function pvs(node, depth, &#945;, &#946;, color)
+ *     if node is a terminal node or depth = 0
+ *         return color x the heuristic value of node
+ *     for each child of node
+ *         if child is not first child
+ *             score := -pvs(child, depth-1, -&#945;-1, -&#945;, -color)       (* search with a null window *)
+ *             if &#945; < score < &#946;                                      (* if it failed high,
+ *                 score := -pvs(child, depth-1, -&#946;, -score, -color)         do a full re-search *)
+ *         else
+ *             score := -pvs(child, depth-1, -&#946;, -&#945;, -color)
+ *         &#945; := max(&#945;, score)
+ *         if &#945; >= &#946;
+ *             break                                            (* beta cut-off *)
+ *     return &#945;
  * </pre>
- *
- * Initial call for maximizing player
- * <pre>minimax(origin, depth, TRUE)</pre>
  *
  * @author antoine vianey
  *
  * @param <M> Implementation of the Move interface to use
  */
-public abstract class Minimax<M extends Move> implements IA<M> {
+public abstract class NegascoutPVS<M extends Move> implements IA<M> {
 
     @Override
     public M getBestMove(final int depth) {
@@ -67,59 +63,53 @@ public abstract class Minimax<M extends Move> implements IA<M> {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
         MoveWrapper<M> wrapper = new MoveWrapper<>();
-        minimax(wrapper, depth, 1);
+        negascout(wrapper, depth, -maxEvaluateValue(), maxEvaluateValue());
         return wrapper.move;
     }
 
-    private double minimax(final MoveWrapper<M> wrapper, final int depth, final int who) {
+    private double negascout(final MoveWrapper<M> wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
-            return who * evaluate();
+            return evaluate();
         }
+        List<M> moves = getPossibleMoves();
+        double b = beta;
         M bestMove = null;
-        Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
         	next();
-            double score = minimaxScore(depth, who);
+            double score = negascoutScore(true, depth, alpha, beta, b);
             previous();
             return score;
-        }
-        if (who > 0) {
-            double score;
-            double bestScore = -maxEvaluateValue();
-            for (M move : moves) {
-                makeMove(move);
-                score = minimaxScore(depth, who);
-                unmakeMove(move);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = move;
-                }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
-            }
-            return bestScore;
         } else {
             double score;
-            double bestScore = maxEvaluateValue();
+            boolean first = true;
             for (M move : moves) {
                 makeMove(move);
-                score = minimaxScore(depth, who);
+                score = negascoutScore(first, depth, alpha, beta, b);
                 unmakeMove(move);
-                if (score < bestScore) {
-                    bestScore = score;
+                if (score > alpha) {
+                    alpha = score;
                     bestMove = move;
+                    if (alpha >= beta) {
+                        break;
+                    }
                 }
+                b = alpha + 1;
+                first = false;
             }
             if (wrapper != null) {
                 wrapper.move = bestMove;
             }
-            return bestScore;
+            return alpha;
         }
     }
-    
-    protected double minimaxScore(final int depth, final int who) {
-		return minimax(null, depth - 1, -who);
+
+    protected double negascoutScore(final boolean first, final int depth, final double alpha, final double beta, final double b) {
+    	double score = -negascout(null, depth - 1, -b, -alpha);
+        if (!first && alpha < score && score < beta) {
+            // fails high... full re-search
+            score = -negascout(null, depth - 1, -beta, -alpha);
+        }
+        return score;
 	}
 
 }

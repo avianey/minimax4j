@@ -32,34 +32,38 @@ import fr.avianey.minimax4j.Move;
 import java.util.Collection;
 
 /**
- * Minimax based implementation.
+ * Negamax based implementation.
  *
  * <pre>
- * function minimax(node, depth, maximizingPlayer)
+ * function negamax(node, depth, color)
  *     if depth = 0 or node is a terminal node
- *         return the heuristic value of node
- *     if maximizingPlayer
- *         bestValue := -&#8734;
- *         for each child of node
- *             val := minimax(child, depth - 1, FALSE)
- *             bestValue := max(bestValue, val)
- *         return bestValue
- *     else
- *         bestValue := +&#8734;
- *         for each child of node
- *             val := minimax(child, depth - 1, TRUE)
- *             bestValue := min(bestValue, val)
- *         return bestValue
+ *         return color * the heuristic value of node
+ *     bestValue := -&#8734;
+ *     foreach child of node
+ *         val := -negamax(child, depth - 1, -color)
+ *         bestValue := max( bestValue, val )
+ *     return bestValue
  * </pre>
  *
- * Initial call for maximizing player
- * <pre>minimax(origin, depth, TRUE)</pre>
+ * Initial call for Player A's root node
+ * <pre>
+ * rootNegamaxValue := negamax( rootNode, depth, 1)
+ * rootMinimaxValue := rootNegamaxValue
+ * </pre>
+ *
+ * Initial call for Player B's root node
+ * <pre>
+ * rootNegamaxValue := negamax( rootNode, depth, -1)
+ * rootMinimaxValue := -rootNegamaxValue
+ * </pre>
+ *
+ * This implementation use alpha-beta cut-offs.
  *
  * @author antoine vianey
  *
  * @param <M> Implementation of the Move interface to use
  */
-public abstract class Minimax<M extends Move> implements IA<M> {
+public abstract class Negamax<M extends Move> implements IA<M> {
 
     @Override
     public M getBestMove(final int depth) {
@@ -67,59 +71,44 @@ public abstract class Minimax<M extends Move> implements IA<M> {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
         MoveWrapper<M> wrapper = new MoveWrapper<>();
-        minimax(wrapper, depth, 1);
+        negamax(wrapper, depth, -maxEvaluateValue(), maxEvaluateValue());
         return wrapper.move;
     }
 
-    private double minimax(final MoveWrapper<M> wrapper, final int depth, final int who) {
+    private double negamax(final MoveWrapper<M> wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
-            return who * evaluate();
+            return evaluate();
         }
         M bestMove = null;
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
         	next();
-            double score = minimaxScore(depth, who);
-            previous();
-            return score;
-        }
-        if (who > 0) {
-            double score;
-            double bestScore = -maxEvaluateValue();
-            for (M move : moves) {
-                makeMove(move);
-                score = minimaxScore(depth, who);
-                unmakeMove(move);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = move;
-                }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
-            }
-            return bestScore;
+        	double score = negamaxScore(depth, alpha, beta);
+        	previous();
+        	return score;
         } else {
             double score;
-            double bestScore = maxEvaluateValue();
             for (M move : moves) {
                 makeMove(move);
-                score = minimaxScore(depth, who);
+                score = negamaxScore(depth, alpha, beta);
                 unmakeMove(move);
-                if (score < bestScore) {
-                    bestScore = score;
+                if (score > alpha) {
+                    alpha = score;
                     bestMove = move;
+                    if (alpha >= beta) {
+                        break;
+                    }
                 }
             }
             if (wrapper != null) {
                 wrapper.move = bestMove;
             }
-            return bestScore;
+            return alpha;
         }
     }
-    
-    protected double minimaxScore(final int depth, final int who) {
-		return minimax(null, depth - 1, -who);
+
+    protected double negamaxScore(final int depth, final double alpha, final double beta) {
+		return -negamax(null, depth - 1, -beta, -alpha);
 	}
 
 }

@@ -41,7 +41,7 @@ import java.util.concurrent.RecursiveTask;
 /**
  * A {@link IA} implementation that distribute the tree exploration across processors.<br/>
  * 
- * @param <M>
+ * @param <M>  Implementation of the Move interface to use
  * @author antoine vianey
  */
 public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneable {

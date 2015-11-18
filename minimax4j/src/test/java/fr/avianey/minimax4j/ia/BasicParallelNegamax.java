@@ -35,17 +35,17 @@ import java.util.List;
  *
  * @author antoine vianey
  */
-public class ParallelIA extends ParallelNegamax<IAMove> implements Cleanable {
+public class BasicParallelNegamax extends ParallelNegamax<IAMove> implements Cleanable {
 
     private final Logic logic;
     private final State state;
 
-    public ParallelIA(int nbPlayers) {
+    public BasicParallelNegamax(int nbPlayers) {
         logic = new Logic(nbPlayers);
         state = new State(nbPlayers);
     }
 
-    private ParallelIA(ParallelIA ia) {
+    private BasicParallelNegamax(BasicParallelNegamax ia) {
         super(ia);
         logic = ia.logic;
         state = ia.state.clone();
@@ -58,7 +58,7 @@ public class ParallelIA extends ParallelNegamax<IAMove> implements Cleanable {
 
     @Override
     public ParallelNegamax<IAMove> clone() {
-        return new ParallelIA(this);
+        return new BasicParallelNegamax(this);
     }
 
     @Override

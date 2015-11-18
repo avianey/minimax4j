@@ -34,5 +34,6 @@ import fr.avianey.minimax4j.Move;
  * @param <M> the type of move to propagate
  */
 final class MoveWrapper<M extends Move> {
-    public M move;
+    /** the move to propagate */
+    M move;
 }

@@ -26,28 +26,16 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.IA;
-import fr.avianey.minimax4j.IADecorator;
-import fr.avianey.minimax4j.impl.Minimax;
+import fr.avianey.minimax4j.impl.Negamax;
 
 import java.util.List;
 
-/**
- * Basic IA to test behaviour and speed of the various implementations.
- * We simulate a game where each cell of a 8x8 grid has a score corresponding
- * to its index in the grid. When the grid is filled by the players, the winner
- * is the player with the highest score. Each move score the value of the cell +
- * a fraction of the value depending of the turn in the game so that the IA is
- * expected to always play the cell with the highest value...
- *
- * @author antoine vianey
- */
-public class BasicMinimax extends Minimax<IAMove> implements Cleanable {
+public class BasicNegamax extends Negamax<IAMove> implements Cleanable {
 
     private final Logic logic;
     private final State state;
 
-    public BasicMinimax(int nbPlayers) {
+    public BasicNegamax(int nbPlayers) {
         logic = new Logic(nbPlayers);
         state = new State(nbPlayers);
     }

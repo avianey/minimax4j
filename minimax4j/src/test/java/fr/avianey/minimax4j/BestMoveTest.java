@@ -35,7 +35,6 @@ import org.junit.runners.Parameterized.Parameters;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static fr.avianey.minimax4j.IA.Algorithm.*;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
@@ -53,22 +52,22 @@ public class BestMoveTest {
     public static Collection<Object[]> params() {
         return Arrays.asList(
                 // IA
-                new Object[]{1, new BasicMinimax(MINIMAX, 2)},
-                new Object[]{2, new BasicMinimax(MINIMAX, 2)},
-                new Object[]{3, new BasicMinimax(MINIMAX, 2)},
-                new Object[]{1, new BasicMinimax(ALPHA_BETA, 2)},
-                new Object[]{2, new BasicMinimax(ALPHA_BETA, 2)},
-                new Object[]{3, new BasicMinimax(ALPHA_BETA, 2)},
-                new Object[]{1, new BasicMinimax(NEGAMAX, 2)},
-                new Object[]{2, new BasicMinimax(NEGAMAX, 2)},
-                new Object[]{3, new BasicMinimax(NEGAMAX, 2)},
-                new Object[]{1, new BasicMinimax(NEGASCOUT, 2)},
-                new Object[]{2, new BasicMinimax(NEGASCOUT, 2)},
-                new Object[]{3, new BasicMinimax(NEGASCOUT, 2)},
+                new Object[]{1, new BasicMinimax(2)},
+                new Object[]{2, new BasicMinimax(2)},
+                new Object[]{3, new BasicMinimax(2)},
+                new Object[]{1, new BasicAlphaBeta(2)},
+                new Object[]{2, new BasicAlphaBeta(2)},
+                new Object[]{3, new BasicAlphaBeta(2)},
+                new Object[]{1, new BasicNegamax(2)},
+                new Object[]{2, new BasicNegamax(2)},
+                new Object[]{3, new BasicNegamax(2)},
+                new Object[]{1, new BasicNegascout(2)},
+                new Object[]{2, new BasicNegascout(2)},
+                new Object[]{3, new BasicNegascout(2)},
                 // parallel IA
-                new Object[]{1, new ParallelIA(2)},
-                new Object[]{2, new ParallelIA(2)},
-                new Object[]{3, new ParallelIA(2)}
+                new Object[]{1, new BasicParallelNegamax(2)},
+                new Object[]{2, new BasicParallelNegamax(2)},
+                new Object[]{3, new BasicParallelNegamax(2)}
         );
     }
 

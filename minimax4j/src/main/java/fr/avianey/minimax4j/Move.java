@@ -44,6 +44,7 @@ package fr.avianey.minimax4j;
  * 
  * @author antoine vianey
  * @see IA#unmakeMove(Move)
+ * @see IA#makeMove(Move)
  *
  */
 public interface Move {}

@@ -29,7 +29,7 @@ package fr.avianey.minimax4j;
 import java.util.List;
 
 /**
- * Abstract class implementing minimax and derivated decision rules for two-person 
+ * Base interface for minimax and derivated decision rules for two-person
  * <a href="http://en.wikipedia.org/wiki/Zero-sum_game">zero-sum</a> games of perfect information.
  * Extend this class to implement IA for several games, such as :
  * <ul>
