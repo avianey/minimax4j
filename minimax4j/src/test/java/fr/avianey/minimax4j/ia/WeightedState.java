@@ -3,7 +3,7 @@
  * <https://github.com/avianey/minimax4j>
  *
  * The MIT License (MIT)
-
+ *
  * Copyright (c) 2015 Antoine Vianey
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,64 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.ia;
 
-import java.util.List;
+import static fr.avianey.minimax4j.ia.Logic.GRID_SIZE;
+import static fr.avianey.minimax4j.ia.Logic.GRID_VALUES;
 
 /**
+ * Wrapper to reuse state across IA implementations.
+ * This class <b>IS NOT</b> safe to use in multiple concurrent threads.
  *
- * @param <M>
+ * @author antoine vianey
  */
-public abstract class IADecorator<M extends Move> implements IA<M> {
+class WeightedState extends BaseState {
 
-    protected final IA<M> ia;
-
-    public IADecorator(IA<M> ia) {
-        this.ia = ia;
+    WeightedState() {
+        super();
     }
 
-    @Override
-    public M getBestMove(int depth) {
-        return ia.getBestMove(depth);
+    void makeMove(IAMove move) {
+        super.makeMove(move);
+        // add the fraction of the score associated with the turn
+        // turn has been incremented by super so (GRID_SIZE - (turn - 1) - 1)
+        grid[move.getPosition()] += (((GRID_VALUES[move.getPosition()] / (double) GRID_SIZE) * (GRID_SIZE - turn)) / (double) GRID_SIZE);
     }
 
-    @Override
-    public boolean isOver() {
-        return ia.isOver();
-    }
-
-    @Override
-    public void makeMove(M move) {
-        ia.makeMove(move);
-    }
-
-    @Override
-    public void unmakeMove(M move) {
-        ia.unmakeMove(move);
-    }
-
-    @Override
-    public List<M> getPossibleMoves() {
-        return ia.getPossibleMoves();
-    }
-
-    @Override
-    public double evaluate() {
-        return ia.evaluate();
-    }
-
-    @Override
-    public double maxEvaluateValue() {
-        return ia.maxEvaluateValue();
-    }
-
-    @Override
-    public void next() {
-        ia.next();
-    }
-
-    @Override
-    public void previous() {
-        ia.previous();
-    }
 }

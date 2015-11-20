@@ -70,6 +70,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <additionalparam>${javadoc.additionalparam}</additionalparam>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -169,6 +172,15 @@
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
                 </repository>
             </distributionManagement>
+        </profile>
+        <profile>
+            <id>javadoc-8</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <javadoc.additionalparam>-Xdoclint:none</javadoc.additionalparam>
+            </properties>
         </profile>
     </profiles>
 	

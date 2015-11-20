@@ -26,62 +26,45 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.impl.Negamax;
+import fr.avianey.bitboard4j.hash.ZobristHashing;
 
-import java.util.List;
+import java.util.Arrays;
 
-public class BasicNegamax extends Negamax<IAMove> implements Cleanable {
+import static fr.avianey.minimax4j.ia.Logic.GRID_SIZE;
 
-    private final Logic logic;
-    private final State state;
+class TranspositionState extends BaseState {
 
-    public BasicNegamax(int nbPlayers) {
-        logic = new Logic(nbPlayers);
-        state = new State(nbPlayers);
+    protected final ZobristHashing hash;
+
+    TranspositionState() {
+        super();
+        hash = new ZobristHashing(2, GRID_SIZE);
     }
 
     @Override
     public void clean() {
-        state.clean();
+        super.clean();
+        hash.reset();
+    }
+
+    Integer getTranspositionValue() {
+        return hash.hashCode();
+    }
+
+    Integer getGroup() {
+        return turn;
     }
 
     @Override
-    public boolean isOver() {
-        return logic.isOver(state);
+    void makeMove(IAMove move) {
+        hash.add(currentPlayer, move.getPosition());
+        super.makeMove(move);
     }
 
     @Override
-    public void makeMove(IAMove move) {
-        state.makeMove(move);
+    void unmakeMove(IAMove move) {
+        super.unmakeMove(move);
+        hash.add(currentPlayer, move.getPosition());
     }
 
-    @Override
-    public void unmakeMove(IAMove move) {
-        state.unmakeMove(move);
-    }
-
-    @Override
-    public List<IAMove> getPossibleMoves() {
-        return logic.getPossibleMoves(state);
-    }
-
-    @Override
-    public double evaluate() {
-        return logic.evaluate(state);
-    }
-
-    @Override
-    public double maxEvaluateValue() {
-        return logic.maxEvaluateValue();
-    }
-
-    @Override
-    public void next() {
-        state.next();
-    }
-
-    @Override
-    public void previous() {
-        state.previous();
-    }
 }

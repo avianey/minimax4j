@@ -39,42 +39,41 @@ import java.util.*;
  *
  * @param <M> Implementation of the Move interface to use
  */
-public abstract class TranspositionNegamax<M extends Move, T, G extends Comparable<? super G>> extends Negamax<M> {
+public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax<M> {
 
-    private static class Transposition<T> {
-        private T value;
-        private int depth;
+    private static class Transposition {
+        private final double value;
+        private final int depth;
+
+        private Transposition(double value, int depth) {
+            this.value = value;
+            this.depth = depth;
+        }
     }
 
     /**
      * Factory for transposition table.
-     * Unless {@link #TranspositionMinimax(fr.avianey.minimax4j.Minimax.Algorithm, TranspositionTableFactory)}
-     * is used as super constructor, an {@link HashMap} is used as default implementation.
+     * Unless {@link #TranspositionNegamax(TranspositionTableFactory)} is used as super constructor,
+     * an {@link HashMap} is used as default implementation.
      *
      * @author antoine vianey
      *
-     * @param <X>
+     * @param <T>
      */
-    public interface TranspositionTableFactory<X> {
-        Map<X, Double> newTransposition();
+    public interface TranspositionTableFactory<T> {
+        Map<T, Transposition> newTranspositionTable();
     }
 
-    private final transient TreeMap<G, Map<T, Double>> transpositionTableMap;
+    private final transient TreeMap<G, Map<T, Transposition>> transpositionTableMap;
     private final transient TranspositionTableFactory<T> transpositionTableFactory;
 
     public TranspositionNegamax() {
         this(new TranspositionTableFactory<T>() {
             @Override
-            public Map<T, Double> newTransposition() {
+            public Map<T, Transposition> newTranspositionTable() {
                 return new HashMap<>();
             }
         });
-    }
-
-    public TranspositionNegamax(TranspositionTableFactory<T> transpositionTableFactory) {
-        super();
-        this.transpositionTableMap = initTranspositionTableMap();
-        this.transpositionTableFactory = transpositionTableFactory;
     }
 
     public TranspositionNegamax(final int initialCapacity) {
@@ -82,7 +81,7 @@ public abstract class TranspositionNegamax<M extends Move, T, G extends Comparab
         this.transpositionTableMap = initTranspositionTableMap();
         this.transpositionTableFactory = new TranspositionTableFactory<T>() {
             @Override
-            public Map<T, Double> newTransposition() {
+            public Map<T, Transposition> newTranspositionTable() {
                 return new HashMap<>(initialCapacity);
             }
         };
@@ -93,10 +92,16 @@ public abstract class TranspositionNegamax<M extends Move, T, G extends Comparab
         this.transpositionTableMap = initTranspositionTableMap();
         this.transpositionTableFactory = new TranspositionTableFactory<T>() {
             @Override
-            public Map<T, Double> newTransposition() {
+            public Map<T, Transposition> newTranspositionTable() {
                 return new HashMap<>(initialCapacity, loadFactor);
             }
         };
+    }
+
+    public TranspositionNegamax(TranspositionTableFactory<T> transpositionTableFactory) {
+        super();
+        this.transpositionTableMap = initTranspositionTableMap();
+        this.transpositionTableFactory = transpositionTableFactory;
     }
 
     /**
@@ -105,7 +110,7 @@ public abstract class TranspositionNegamax<M extends Move, T, G extends Comparab
      * 		A {@link TreeMap} storing transposition tables by group
      */
     @SuppressWarnings("unchecked")
-    private TreeMap<G, Map<T, Double>> initTranspositionTableMap() {
+    private TreeMap<G, Map<T, Transposition>> initTranspositionTableMap() {
         Type t = getClass().getGenericSuperclass();
         // search for the Group class within class hierarchy
         while (!(t instanceof ParameterizedType
@@ -131,27 +136,19 @@ public abstract class TranspositionNegamax<M extends Move, T, G extends Comparab
         }
     }
 
-    public TreeMap<G, Map<T, Double>> getTranspositionTableMap() {
+    public TreeMap<G, Map<T, Transposition>> getTranspositionTableMap() {
         return this.transpositionTableMap;
     }
 
     @Override
     public M getBestMove(int depth) {
         M m = super.getBestMove(depth);
+        // remove groups that won't help anymore
         clearGroups(getGroup());
         return m;
     }
 
-    /**
-     * Set it to false to stop the use of the transposition table<br/>
-     * Default is true.
-     * @return
-     */
-    protected boolean useTranspositionTable() {
-        return true;
-    }
-
-    private final void clearGroups(G currentGroup) {
+    private void clearGroups(G currentGroup) {
         if (currentGroup != null) {
             // free memory :
             // evict unnecessary transpositions
@@ -177,17 +174,17 @@ public abstract class TranspositionNegamax<M extends Move, T, G extends Comparab
      * The current player MUST be taken in account in the transposition's {@link Object#equals(Object)} function
      * otherwise the stored value for the transposition may reflect the strength of the other player...
      * @return
-     *      the hash for the current configuration
+     *      the value for the current configuration
      */
-    public abstract T getTransposition();
+    public abstract T getTranspositionValue();
 
     /**
      * Returns all the transpositions representing the current game configuration.
      * @return
      *      a {@link Iterable} of transpositions
      */
-    public Iterable<T> getSymetricTranspositions() {
-        return Collections.singleton(getTransposition());
+    public Iterable<T> getSymetricTranspositionValues() {
+        return Collections.singleton(getTranspositionValue());
     }
 
     /**
@@ -204,37 +201,40 @@ public abstract class TranspositionNegamax<M extends Move, T, G extends Comparab
      * </dl>
      * Groups <b>MUST</b> be ordered such as when the current configuration hash belong to group
      * G1, transpositions that belongs to groups G < G1 can be forgiven... If you don't want to
-     * handle groups, let G be {@link Void} and return null groups.
+     * handle groups, let G be {@link Void} and return null.
      *
      * @return
      *      the group for the current position
      */
     public abstract G getGroup();
 
-    private void saveTransposition(Map<T, Double> transpositionTable, double score) {
+    private void saveTransposition(Map<T, Transposition> transpositionTable, final int depth, final double score) {
         if (transpositionTable == null) {
-            transpositionTable = transpositionTableFactory.newTransposition();
+            transpositionTable = transpositionTableFactory.newTranspositionTable();
             transpositionTableMap.put(getGroup(), transpositionTable);
         }
         // save transposition
-        for (T st : getSymetricTranspositions()) {
-            transpositionTable.put(st, score);
+        Transposition transposition = new Transposition(score, depth);
+        for (T st : getSymetricTranspositionValues()) {
+            transpositionTable.put(st, transposition);
         }
     }
 
     protected double negamaxScore(final int depth, final double alpha, final double beta) {
         double score = 0;
-        T t = getTransposition();
-        Map<T, Double> transpositionTable = transpositionTableMap.get(getGroup());
-        if (transpositionTable != null && transpositionTable.containsKey(t)) {
-            // transposition found
-            // we can stop here as we already know the value
-            // returned by the evaluation function
-            score = transpositionTable.get(t);
-        } else {
-            score = super.negamaxScore(depth, alpha, beta);
-            saveTransposition(transpositionTable, score);
+        Map<T, Transposition> transpositionTable = transpositionTableMap.get(getGroup());
+        if (transpositionTable != null) {
+            Transposition transposition = transpositionTable.get(getTranspositionValue());
+            if (transposition != null && depth <= transposition.depth) {
+                // transposition has a deeper or equal search depth
+                // we can stop here as we already know the value
+                // returned by the evaluation function
+                return transposition.value;
+            }
         }
+        // no transposition found or insufficient depth
+        score = super.negamaxScore(depth, alpha, beta);
+        saveTransposition(transpositionTable, depth, score);
         return score;
 	}
 

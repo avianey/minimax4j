@@ -3,7 +3,7 @@
  * <https://github.com/avianey/minimax4j>
  *
  * The MIT License (MIT)
-
+ *
  * Copyright (c) 2015 Antoine Vianey
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,64 +24,64 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.ia;
+
+import fr.avianey.minimax4j.impl.Negamax;
 
 import java.util.List;
 
-/**
- *
- * @param <M>
- */
-public abstract class IADecorator<M extends Move> implements IA<M> {
+public class BaseNegamax extends Negamax<IAMove> implements Cleanable {
 
-    protected final IA<M> ia;
+    private final Logic logic;
+    private final BaseState state;
 
-    public IADecorator(IA<M> ia) {
-        this.ia = ia;
+    public BaseNegamax() {
+        logic = new Logic();
+        state = new BaseState();
     }
 
     @Override
-    public M getBestMove(int depth) {
-        return ia.getBestMove(depth);
+    public void clean() {
+        state.clean();
     }
 
     @Override
     public boolean isOver() {
-        return ia.isOver();
+        return logic.isOver(state);
     }
 
     @Override
-    public void makeMove(M move) {
-        ia.makeMove(move);
+    public void makeMove(IAMove move) {
+        state.makeMove(move);
     }
 
     @Override
-    public void unmakeMove(M move) {
-        ia.unmakeMove(move);
+    public void unmakeMove(IAMove move) {
+        state.unmakeMove(move);
     }
 
     @Override
-    public List<M> getPossibleMoves() {
-        return ia.getPossibleMoves();
+    public List<IAMove> getPossibleMoves() {
+        return logic.getPossibleMoves(state);
     }
 
     @Override
     public double evaluate() {
-        return ia.evaluate();
+        return logic.evaluate(state);
     }
 
     @Override
     public double maxEvaluateValue() {
-        return ia.maxEvaluateValue();
+        return logic.maxEvaluateValue();
     }
 
     @Override
     public void next() {
-        ia.next();
+        state.next();
     }
 
     @Override
     public void previous() {
-        ia.previous();
+        state.previous();
     }
 }

@@ -51,17 +51,13 @@ public final class Logic {
         }
     }
 
-    private final int nbPlayers;
+    Logic() {}
 
-    Logic(int nbPlayers) {
-        this.nbPlayers = nbPlayers;
-    }
-
-    boolean isOver(State state) {
+    boolean isOver(BaseState state) {
         return state.getTurn() == GRID_SIZE;
     }
 
-    List<IAMove> getPossibleMoves(State state) {
+    List<IAMove> getPossibleMoves(BaseState state) {
         LinkedList<IAMove> moves = new LinkedList<>();
         int index = 0;
         for (double cell : state.getGrid()) {
@@ -73,10 +69,10 @@ public final class Logic {
         return moves;
     }
 
-    double evaluate(State state) {
+    double evaluate(BaseState state) {
         if (isOver(state)) {
             // check win
-            int[] scores = new int[nbPlayers];
+            int[] scores = new int[2];
             int index = 0;
             for (double cell : state.getGrid()) {
                 if (cell != EMPTY_CELL) {
@@ -84,7 +80,7 @@ public final class Logic {
                 }
                 index++;
             }
-            for (int i = 0; i < nbPlayers; i++) {
+            for (int i = 0; i < 2; i++) {
                 if (i != state.getCurrentPlayer() && scores[state.getCurrentPlayer()] < scores[i]) {
                     // player i win
                     return -MAX_SCORE + scores[state.getCurrentPlayer()];

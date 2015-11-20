@@ -52,22 +52,22 @@ public class BestMoveTest {
     public static Collection<Object[]> params() {
         return Arrays.asList(
                 // IA
-                new Object[]{1, new BasicMinimax(2)},
-                new Object[]{2, new BasicMinimax(2)},
-                new Object[]{3, new BasicMinimax(2)},
-                new Object[]{1, new BasicAlphaBeta(2)},
-                new Object[]{2, new BasicAlphaBeta(2)},
-                new Object[]{3, new BasicAlphaBeta(2)},
-                new Object[]{1, new BasicNegamax(2)},
-                new Object[]{2, new BasicNegamax(2)},
-                new Object[]{3, new BasicNegamax(2)},
-                new Object[]{1, new BasicNegascout(2)},
-                new Object[]{2, new BasicNegascout(2)},
-                new Object[]{3, new BasicNegascout(2)},
+                new Object[]{1, new WeightedMinimax()},
+                new Object[]{2, new WeightedMinimax()},
+                new Object[]{3, new WeightedMinimax()},
+                new Object[]{1, new WeightedAlphaBeta()},
+                new Object[]{2, new WeightedAlphaBeta()},
+                new Object[]{3, new WeightedAlphaBeta()},
+                new Object[]{1, new WeightedNegamax()},
+                new Object[]{2, new WeightedNegamax()},
+                new Object[]{3, new WeightedNegamax()},
+                new Object[]{1, new WeightedNegascout()},
+                new Object[]{2, new WeightedNegascout()},
+                new Object[]{3, new WeightedNegascout()},
                 // parallel IA
-                new Object[]{1, new BasicParallelNegamax(2)},
-                new Object[]{2, new BasicParallelNegamax(2)},
-                new Object[]{3, new BasicParallelNegamax(2)}
+                new Object[]{1, new WeightedParallelNegamax()},
+                new Object[]{2, new WeightedParallelNegamax()},
+                new Object[]{3, new WeightedParallelNegamax()}
         );
     }
 

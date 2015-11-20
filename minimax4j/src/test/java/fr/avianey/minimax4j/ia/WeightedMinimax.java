@@ -26,18 +26,28 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.impl.NegascoutPVS;
+import fr.avianey.minimax4j.impl.Minimax;
 
 import java.util.List;
 
-public class BasicNegascout extends NegascoutPVS<IAMove> implements Cleanable {
+/**
+ * Basic IA to test behaviour and speed of the various implementations.
+ * We simulate a game where each cell of a 8x8 grid has a score corresponding
+ * to its index in the grid. When the grid is filled by the players, the winner
+ * is the player with the highest score. Each move score the value of the cell +
+ * a fraction of the value depending of the turn in the game so that the IA is
+ * expected to always play the cell with the highest value...
+ *
+ * @author antoine vianey
+ */
+public class WeightedMinimax extends Minimax<IAMove> implements Cleanable {
 
     private final Logic logic;
-    private final State state;
+    private final BaseState state;
 
-    public BasicNegascout(int nbPlayers) {
-        logic = new Logic(nbPlayers);
-        state = new State(nbPlayers);
+    public WeightedMinimax() {
+        logic = new Logic();
+        state = new WeightedState();
     }
 
     @Override

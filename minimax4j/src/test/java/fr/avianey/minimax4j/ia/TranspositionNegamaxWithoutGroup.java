@@ -26,18 +26,28 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.impl.AlphaBeta;
+import fr.avianey.minimax4j.impl.TranspositionNegamax;
 
 import java.util.List;
 
-public class BasicAlphaBeta extends AlphaBeta<IAMove> implements Cleanable {
+public class TranspositionNegamaxWithoutGroup extends TranspositionNegamax<IAMove, Integer, Void> implements Cleanable {
 
     private final Logic logic;
-    private final State state;
+    private final TranspositionState state;
 
-    public BasicAlphaBeta(int nbPlayers) {
-        logic = new Logic(nbPlayers);
-        state = new State(nbPlayers);
+    public TranspositionNegamaxWithoutGroup() {
+        logic = new Logic();
+        state = new TranspositionState();
+    }
+
+    @Override
+    public Integer getTranspositionValue() {
+        return state.getTranspositionValue();
+    }
+
+    @Override
+    public Void getGroup() {
+        return null;
     }
 
     @Override
