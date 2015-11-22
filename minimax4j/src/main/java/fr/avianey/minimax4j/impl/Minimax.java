@@ -84,6 +84,7 @@ public abstract class Minimax<M extends Move> implements IA<M> {
             return score;
         }
         if (who > 0) {
+            // max
             double score;
             double bestScore = -maxEvaluateValue();
             for (M move : moves) {
@@ -100,6 +101,7 @@ public abstract class Minimax<M extends Move> implements IA<M> {
             }
             return bestScore;
         } else {
+            // min
             double score;
             double bestScore = maxEvaluateValue();
             for (M move : moves) {

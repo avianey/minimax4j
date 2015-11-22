@@ -64,7 +64,7 @@ class TranspositionState extends BaseState {
     @Override
     void unmakeMove(IAMove move) {
         super.unmakeMove(move);
-        hash.add(currentPlayer, move.getPosition());
+        hash.remove(currentPlayer, move.getPosition());
     }
 
 }

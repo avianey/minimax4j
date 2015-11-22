@@ -26,23 +26,39 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.impl.Negamax;
+import fr.avianey.minimax4j.impl.ParallelNegamax;
 
 import java.util.List;
 
-public class WeightedNegamax extends Negamax<IAMove> implements Cleanable {
+/**
+ * Parallel version of the test {@code BasicMinimax}.
+ *
+ * @author antoine vianey
+ */
+public class BaseParallelNegamax extends ParallelNegamax<IAMove> implements Cleanable {
 
     private final Logic logic;
     private final BaseState state;
 
-    public WeightedNegamax() {
+    public BaseParallelNegamax() {
         logic = new Logic();
-        state = new WeightedState();
+        state = new BaseState();
+    }
+
+    private BaseParallelNegamax(BaseParallelNegamax ia) {
+        super(ia);
+        logic = ia.logic;
+        state = ia.state.clone();
     }
 
     @Override
     public void clean() {
         state.clean();
+    }
+
+    @Override
+    public ParallelNegamax<IAMove> clone() {
+        return new BaseParallelNegamax(this);
     }
 
     @Override
@@ -84,4 +100,5 @@ public class WeightedNegamax extends Negamax<IAMove> implements Cleanable {
     public void previous() {
         state.previous();
     }
+
 }

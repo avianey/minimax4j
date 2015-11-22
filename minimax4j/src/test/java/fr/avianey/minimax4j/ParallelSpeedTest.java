@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class SpeedTest {
+public class ParallelSpeedTest {
 
     private static final int TURNS = 64;
     private static final int COST = 1; // 1 ms
@@ -66,7 +66,7 @@ public class SpeedTest {
 
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         for (Object[] params : params()) {
-            SpeedTest speedTest = new SpeedTest(
+            ParallelSpeedTest speedTest = new ParallelSpeedTest(
                     (Class<? extends IA<VoidMove>>) params[0],
                     (int) params[1], (int) params[2],
                     (long) params[3], (long) params[5], (long) params[5],
@@ -76,10 +76,10 @@ public class SpeedTest {
         }
     }
 
-    public SpeedTest(Class<? extends IA<VoidMove>> iaClass,
-                     int depth, int branchingFactor,
-                     long getPossibleMovesCost, long makeMoveCost, long unmakeMoveCost,
-                     long evaluateCost, long nextPreviousCost, long cloneCost) {
+    public ParallelSpeedTest(Class<? extends IA<VoidMove>> iaClass,
+                             int depth, int branchingFactor,
+                             long getPossibleMovesCost, long makeMoveCost, long unmakeMoveCost,
+                             long evaluateCost, long nextPreviousCost, long cloneCost) {
         this.depth = depth;
         if (NegamaxIA.class.equals(iaClass)) {
             ia = new NegamaxIA(branchingFactor,

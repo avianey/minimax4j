@@ -27,6 +27,7 @@
 package fr.avianey.minimax4j.impl;
 
 import fr.avianey.minimax4j.IA;
+import fr.avianey.minimax4j.IADecorator;
 import fr.avianey.minimax4j.Move;
 
 import java.util.Collection;
@@ -75,7 +76,7 @@ public abstract class Negamax<M extends Move> implements IA<M> {
         return wrapper.move;
     }
 
-    private double negamax(final MoveWrapper<M> wrapper, final int depth, double alpha, double beta) {
+    protected double negamax(final MoveWrapper<M> wrapper, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
@@ -83,14 +84,14 @@ public abstract class Negamax<M extends Move> implements IA<M> {
         Collection<M> moves = getPossibleMoves();
         if (moves.isEmpty()) {
         	next();
-        	double score = negamaxScore(depth, alpha, beta);
+        	double score = -negamax(null, depth - 1, -beta, -alpha);
         	previous();
         	return score;
         } else {
             double score;
             for (M move : moves) {
                 makeMove(move);
-                score = negamaxScore(depth, alpha, beta);
+                score = -negamax(null, depth - 1, -beta, -alpha);
                 unmakeMove(move);
                 if (score > alpha) {
                     alpha = score;
@@ -106,9 +107,5 @@ public abstract class Negamax<M extends Move> implements IA<M> {
             return alpha;
         }
     }
-
-    protected double negamaxScore(final int depth, final double alpha, final double beta) {
-		return -negamax(null, depth - 1, -beta, -alpha);
-	}
 
 }

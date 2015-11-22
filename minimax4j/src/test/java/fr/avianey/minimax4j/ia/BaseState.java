@@ -30,7 +30,7 @@ import java.util.Arrays;
 
 import static fr.avianey.minimax4j.ia.Logic.EMPTY_CELL;
 import static fr.avianey.minimax4j.ia.Logic.GRID_SIZE;
-import static fr.avianey.minimax4j.ia.Logic.GRID_VALUES;
+import static fr.avianey.minimax4j.ia.Logic.SIZE;
 
 /**
  * Wrapper to reuse state across IA implementations.
@@ -40,12 +40,12 @@ import static fr.avianey.minimax4j.ia.Logic.GRID_VALUES;
  */
 class BaseState implements Cleanable {
 
-    protected final double[] grid = new double[GRID_SIZE];
+    protected final int[] grid = new int[GRID_SIZE];
     protected int turn;
     protected int currentPlayer;
 
     BaseState() {
-        clean();
+        Arrays.fill(grid, EMPTY_CELL);
     }
 
     @Override
@@ -95,7 +95,7 @@ class BaseState implements Cleanable {
         }
     }
 
-    double[] getGrid() {
+    int[] getGrid() {
         return grid;
     }
 
@@ -105,5 +105,18 @@ class BaseState implements Cleanable {
 
     int getCurrentPlayer() {
         return currentPlayer;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        int n = 0;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                sb.append(grid[n++] == 0 ? 'O' : 'X');
+            }
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 }

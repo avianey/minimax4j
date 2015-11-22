@@ -26,39 +26,38 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.impl.ParallelNegamax;
+import fr.avianey.minimax4j.impl.TranspositionNegamax;
 
 import java.util.List;
 
-/**
- * Parallel version of the test {@code BasicMinimax}.
- *
- * @author antoine vianey
- */
-public class WeightedParallelNegamax extends ParallelNegamax<IAMove> implements Cleanable {
+public class TranspositionNegamaxWithSymmetricTransposition extends TranspositionNegamax<IAMove, Integer, Integer> implements Cleanable {
 
     private final Logic logic;
-    private final BaseState state;
+    private final TranspositionStateWithSymmetricTransposition state;
 
-    public WeightedParallelNegamax() {
+    public TranspositionNegamaxWithSymmetricTransposition() {
         logic = new Logic();
-        state = new WeightedState();
+        state = new TranspositionStateWithSymmetricTransposition();
     }
 
-    private WeightedParallelNegamax(WeightedParallelNegamax ia) {
-        super(ia);
-        logic = ia.logic;
-        state = ia.state.clone();
+    @Override
+    public Integer getTranspositionValue() {
+        return state.getTranspositionValue();
+    }
+
+    @Override
+    public Integer getGroup() {
+        return state.getGroup();
+    }
+
+    @Override
+    public Iterable<Integer> getSymmetricTranspositionValues() {
+        return state.getSymmetricTranspositionValues();
     }
 
     @Override
     public void clean() {
         state.clean();
-    }
-
-    @Override
-    public ParallelNegamax<IAMove> clone() {
-        return new WeightedParallelNegamax(this);
     }
 
     @Override
@@ -100,5 +99,4 @@ public class WeightedParallelNegamax extends ParallelNegamax<IAMove> implements 
     public void previous() {
         state.previous();
     }
-
 }

@@ -40,14 +40,14 @@ import java.util.List;
  *
  * @author antoine vianey
  */
-public class WeightedMinimax extends Minimax<IAMove> implements Cleanable {
+public class BaseMinimax extends Minimax<IAMove> implements Cleanable {
 
     private final Logic logic;
     private final BaseState state;
 
-    public WeightedMinimax() {
+    public BaseMinimax() {
         logic = new Logic();
-        state = new WeightedState();
+        state = new BaseState();
     }
 
     @Override

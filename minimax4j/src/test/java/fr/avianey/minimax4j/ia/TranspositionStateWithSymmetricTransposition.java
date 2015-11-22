@@ -30,7 +30,7 @@ import fr.avianey.bitboard4j.hash.ZobristHashing;
 
 import java.util.AbstractList;
 
-class TranspositionStateWithSymetricTransposition extends TranspositionState {
+class TranspositionStateWithSymmetricTransposition extends TranspositionState {
 
     private final ZobristHashing hash90;
     private final ZobristHashing hash180;
@@ -38,7 +38,7 @@ class TranspositionStateWithSymetricTransposition extends TranspositionState {
 
     private final Iterable<Integer> symetricTranspositions = new SymetricTranspositionsList();
 
-    TranspositionStateWithSymetricTransposition() {
+    TranspositionStateWithSymmetricTransposition() {
         super();
         hash90 = new ZobristHashing(hash);
         hash180 = new ZobristHashing(hash);
@@ -61,7 +61,7 @@ class TranspositionStateWithSymetricTransposition extends TranspositionState {
         return turn;
     }
 
-    public Iterable<Integer> getSymetricTranspositionValues() {
+    public Iterable<Integer> getSymmetricTranspositionValues() {
         return symetricTranspositions;
     }
 

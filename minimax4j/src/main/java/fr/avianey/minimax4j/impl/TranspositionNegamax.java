@@ -27,6 +27,7 @@
 package fr.avianey.minimax4j.impl;
 
 import fr.avianey.minimax4j.Move;
+import org.omg.PortableInterceptor.LOCATION_FORWARD;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -41,13 +42,19 @@ import java.util.*;
  */
 public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax<M> {
 
+    private static final int FLAG_EXACT = 0;
+    private static final int FLAG_UPPERBOUND = 1;
+    private static final int FLAG_LOWERBOUND = 2;
+
     private static class Transposition {
         private final double value;
         private final int depth;
+        private final int flag;
 
-        private Transposition(double value, int depth) {
+        private Transposition(double value, int depth, int flag) {
             this.value = value;
             this.depth = depth;
+            this.flag = flag;
         }
     }
 
@@ -140,14 +147,6 @@ public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax
         return this.transpositionTableMap;
     }
 
-    @Override
-    public M getBestMove(int depth) {
-        M m = super.getBestMove(depth);
-        // remove groups that won't help anymore
-        clearGroups(getGroup());
-        return m;
-    }
-
     private void clearGroups(G currentGroup) {
         if (currentGroup != null) {
             // free memory :
@@ -183,7 +182,7 @@ public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax
      * @return
      *      a {@link Iterable} of transpositions
      */
-    public Iterable<T> getSymetricTranspositionValues() {
+    public Iterable<T> getSymmetricTranspositionValues() {
         return Collections.singleton(getTranspositionValue());
     }
 
@@ -208,33 +207,72 @@ public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax
      */
     public abstract G getGroup();
 
-    private void saveTransposition(Map<T, Transposition> transpositionTable, final int depth, final double score) {
+    private void saveTransposition(Map<T, Transposition> transpositionTable, final int depth, final double score, final int flag) {
         if (transpositionTable == null) {
             transpositionTable = transpositionTableFactory.newTranspositionTable();
             transpositionTableMap.put(getGroup(), transpositionTable);
         }
         // save transposition
-        Transposition transposition = new Transposition(score, depth);
-        for (T st : getSymetricTranspositionValues()) {
+        Transposition transposition = new Transposition(score, depth, flag);
+        for (T st : getSymmetricTranspositionValues()) {
             transpositionTable.put(st, transposition);
         }
     }
 
-    protected double negamaxScore(final int depth, final double alpha, final double beta) {
-        double score = 0;
+    @Override
+    public M getBestMove(final int depth) {
+        if (depth <= 0) {
+            throw new IllegalArgumentException("Search depth MUST be > 0");
+        }
+        MoveWrapper<M> wrapper = new MoveWrapper<>();
+        super.negamax(wrapper, depth, -maxEvaluateValue(), maxEvaluateValue());
+        // clear useless groups
+        clearGroups(getGroup());
+        return wrapper.move;
+    }
+
+    @Override
+    protected double negamax(final MoveWrapper<M> wrapper, final int depth, final double alpha, final double beta) {
+        double a = alpha;
+        double b = beta;
         Map<T, Transposition> transpositionTable = transpositionTableMap.get(getGroup());
         if (transpositionTable != null) {
             Transposition transposition = transpositionTable.get(getTranspositionValue());
             if (transposition != null && depth <= transposition.depth) {
-                // transposition has a deeper or equal search depth
-                // we can stop here as we already know the value
-                // returned by the evaluation function
-                return transposition.value;
+                double value = (((transposition.depth - depth) & 1) == 0 ? 1 : -1) * transposition.value;
+                switch (transposition.flag) {
+                    case FLAG_EXACT:
+                        // transposition has a deeper or equal search depth
+                        // we can stop here as we already know the value
+                        // returned by the evaluation function
+                        return value;
+                    case FLAG_UPPERBOUND:
+                        if (value < beta) {
+                            b = value;
+                        }
+                        break;
+                    case FLAG_LOWERBOUND:
+                        if (value > alpha) {
+                            a = value;
+                        }
+                        break;
+                }
+                if (a >= b) {
+                    return value;
+                }
             }
         }
-        // no transposition found or insufficient depth
-        score = super.negamaxScore(depth, alpha, beta);
-        saveTransposition(transpositionTable, depth, score);
+
+        double score = super.negamax(wrapper, depth, a, b);
+
+        if (score <= a) {
+            saveTransposition(transpositionTable, depth, score, FLAG_UPPERBOUND);
+        } else if (score >= beta) {
+            saveTransposition(transpositionTable, depth, score, FLAG_LOWERBOUND);
+        } else {
+            saveTransposition(transpositionTable, depth, score, FLAG_EXACT);
+        }
+
         return score;
 	}
 
