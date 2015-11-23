@@ -64,7 +64,11 @@ public class BestMoveTest {
                 // parallel IA
                 new Object[]{1, new BaseParallelNegamax()},
                 new Object[]{2, new BaseParallelNegamax()},
-                new Object[]{3, new BaseParallelNegamax()}
+                new Object[]{3, new BaseParallelNegamax()},
+                // transposition IA
+                new Object[]{1, new TranspositionNegamaxWithGroup()},
+                new Object[]{2, new TranspositionNegamaxWithGroup()},
+                new Object[]{3, new TranspositionNegamaxWithGroup()}
         );
     }
 

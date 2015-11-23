@@ -46,7 +46,7 @@ public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax
     private static final int FLAG_UPPERBOUND = 1;
     private static final int FLAG_LOWERBOUND = 2;
 
-    private static class Transposition {
+    protected static class Transposition {
         private final double value;
         private final int depth;
         private final int flag;
