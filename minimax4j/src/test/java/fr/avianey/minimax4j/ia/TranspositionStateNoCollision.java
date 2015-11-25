@@ -28,41 +28,59 @@ package fr.avianey.minimax4j.ia;
 
 import fr.avianey.bitboard4j.hash.ZobristHashing;
 
-import java.util.AbstractList;
+import static fr.avianey.minimax4j.ia.Logic.GRID_SIZE;
 
-class TranspositionStateWithSymmetricTransposition extends TranspositionState {
+class TranspositionStateNoCollision extends BaseState {
 
-    private final ZobristHashing hash90;
-    private final ZobristHashing hash180;
-    private final ZobristHashing hash270;
+    public static class NoCollision {
+        private final int hash;
+        private final int[] grid;
 
-    private final Iterable<Integer> symetricTranspositions = new SymetricTranspositionsList();
+        public NoCollision(int hash, int[] grid) {
+            this.hash = hash;
+            this.grid = new int[grid.length];
+            System.arraycopy(grid, 0, this.grid, 0, grid.length);
+        }
 
-    TranspositionStateWithSymmetricTransposition() {
+        @Override
+        public boolean equals(Object o) {
+            NoCollision other = ((NoCollision) o);
+            if (other.hash != hash) {
+                return false;
+            }
+            for (int i = grid.length - 1; i >= 0; i--) {
+                if (grid[i] != other.grid[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return hash & 0xFFFF;
+        }
+    }
+
+    protected final ZobristHashing hash;
+
+    TranspositionStateNoCollision() {
         super();
-        hash90 = new ZobristHashing(hash);
-        hash180 = new ZobristHashing(hash);
-        hash270 = new ZobristHashing(hash);
+        hash = new ZobristHashing(2, GRID_SIZE);
     }
 
     @Override
     public void clean() {
         super.clean();
-        hash90.reset();
-        hash180.reset();
-        hash270.reset();
+        hash.reset();
     }
 
-    Integer getTranspositionValue() {
-        return hash.hashCode();
+    NoCollision getTranspositionValue() {
+        return new NoCollision(hash.hashCode(), super.grid);
     }
 
     Integer getGroup() {
         return turn;
-    }
-
-    public Iterable<Integer> getSymmetricTranspositionValues() {
-        return symetricTranspositions;
     }
 
     @Override
@@ -74,27 +92,6 @@ class TranspositionStateWithSymmetricTransposition extends TranspositionState {
     @Override
     void unmakeMove(IAMove move) {
         super.unmakeMove(move);
-        hash.add(currentPlayer, move.getPosition());
-    }
-
-    private class SymetricTranspositionsList extends AbstractList<Integer> {
-        @Override
-        public Integer get(int i) {
-            switch (i) {
-                case 0:
-                    return hash.hashCode();
-                case 1:
-                    return hash90.hashCode();
-                case 2:
-                    return hash180.hashCode();
-                case 3:
-                    return hash270.hashCode();
-            }
-            return 0;
-        }
-        @Override
-        public int size() {
-            return 4;
-        }
+        hash.remove(currentPlayer, move.getPosition());
     }
 }

@@ -27,11 +27,13 @@
 package fr.avianey.minimax4j.impl;
 
 import fr.avianey.minimax4j.Move;
-import org.omg.PortableInterceptor.LOCATION_FORWARD;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Negamax based with transposition table implementation.
@@ -39,77 +41,69 @@ import java.util.*;
  * @author antoine vianey
  *
  * @param <M> Implementation of the Move interface to use
+ * @param <K> The key used for the transposition table
+ * @param <G> An optional {@link Comparable<G>} use to group transpositions
  */
-public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax<M> {
+public abstract class TranspositionNegamax<M extends Move, K, G> extends Negamax<M> {
 
-    private static final int FLAG_EXACT = 0;
-    private static final int FLAG_UPPERBOUND = 1;
-    private static final int FLAG_LOWERBOUND = 2;
+    protected static final int FLAG_EXACT = 0;
+    protected static final int FLAG_UPPERBOUND = 1;
+    protected static final int FLAG_LOWERBOUND = 2;
 
-    protected static class Transposition {
+    protected static class Transposition<K> {
         private final double value;
         private final int depth;
         private final int flag;
+        private final K key;
 
-        private Transposition(double value, int depth, int flag) {
+        protected Transposition(double value, int depth, int flag, K key) {
             this.value = value;
             this.depth = depth;
             this.flag = flag;
+            this.key = key;
         }
     }
 
-    /**
-     * Factory for transposition table.
-     * Unless {@link #TranspositionNegamax(TranspositionTableFactory)} is used as super constructor,
-     * an {@link HashMap} is used as default implementation.
-     *
-     * @author antoine vianey
-     *
-     * @param <T>
-     */
-    public interface TranspositionTableFactory<T> {
-        Map<T, Transposition> newTranspositionTable();
+    public interface TranspositionTableFactory<K> {
+        Map<Integer, Transposition<K>> newTranspositionTable();
     }
 
-    private final transient TreeMap<G, Map<T, Transposition>> transpositionTableMap;
-    private final transient TranspositionTableFactory<T> transpositionTableFactory;
+    private final transient TreeMap<G, Map<Integer, Transposition<K>>> transpositionTableMap;
+    private final transient TranspositionTableFactory<K> transpositionTableFactory;
 
     public TranspositionNegamax() {
-        this(new TranspositionTableFactory<T>() {
+        this(new TranspositionTableFactory<K>() {
             @Override
-            public Map<T, Transposition> newTranspositionTable() {
+            public Map<Integer, Transposition<K>> newTranspositionTable() {
                 return new HashMap<>();
             }
         });
     }
 
     public TranspositionNegamax(final int initialCapacity) {
-        super();
-        this.transpositionTableMap = initTranspositionTableMap();
-        this.transpositionTableFactory = new TranspositionTableFactory<T>() {
+        this(new TranspositionTableFactory<K>() {
             @Override
-            public Map<T, Transposition> newTranspositionTable() {
+            public Map<Integer, Transposition<K>> newTranspositionTable() {
                 return new HashMap<>(initialCapacity);
             }
-        };
+        });
     }
 
     public TranspositionNegamax(final int initialCapacity, final float loadFactor) {
-        super();
-        this.transpositionTableMap = initTranspositionTableMap();
-        this.transpositionTableFactory = new TranspositionTableFactory<T>() {
+        this(new TranspositionTableFactory<K>() {
             @Override
-            public Map<T, Transposition> newTranspositionTable() {
+            public Map<Integer, Transposition<K>> newTranspositionTable() {
                 return new HashMap<>(initialCapacity, loadFactor);
             }
-        };
+        });
     }
 
-    public TranspositionNegamax(TranspositionTableFactory<T> transpositionTableFactory) {
+    public TranspositionNegamax(TranspositionTableFactory<K> transpositionTableFactory) {
         super();
-        this.transpositionTableMap = initTranspositionTableMap();
         this.transpositionTableFactory = transpositionTableFactory;
+        this.transpositionTableMap = initTranspositionTableMap();
     }
+
 
     /**
      * Initialize the map of transposition table classified by groups.
@@ -117,7 +111,7 @@ public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax
      * 		A {@link TreeMap} storing transposition tables by group
      */
     @SuppressWarnings("unchecked")
-    private TreeMap<G, Map<T, Transposition>> initTranspositionTableMap() {
+    private TreeMap<G, Map<Integer, Transposition<K>>> initTranspositionTableMap() {
         Type t = getClass().getGenericSuperclass();
         // search for the Group class within class hierarchy
         while (!(t instanceof ParameterizedType
@@ -143,10 +137,6 @@ public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax
         }
     }
 
-    public TreeMap<G, Map<T, Transposition>> getTranspositionTableMap() {
-        return this.transpositionTableMap;
-    }
-
     private void clearGroups(G currentGroup) {
         if (currentGroup != null) {
             // free memory :
@@ -161,62 +151,83 @@ public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax
      *
      * @see #getGroup()
      */
-    public final void clearTranspositionTable() {
+    public final void clearTranspositions() {
         transpositionTableMap.clear();
     }
 
     /**
-     * Represent the current configuration by an int value.
-     * <ul>
-     * <li><a href="http://en.wikipedia.org/wiki/Zobrist_hashing">Zobrist hashing</a></li>
-     * </ul>
-     * The current player MUST be taken in account in the transposition's {@link Object#equals(Object)} function
-     * otherwise the stored value for the transposition may reflect the strength of the other player...
+     * Returns the current configuration key.<br/>
+     * Implementation MUST override the {@link #hashCode()} and {@link #equals(Object)} methods.
+     * A <a href="http://en.wikipedia.org/wiki/Zobrist_hashing">Zobrist hashing</a> could be use to provide
+     * the hash value of the transposition key. Equality between key will be used to check for collision when
+     * different configurations map to the same hash value.
+     *  <dl>
+     *      <dt>{@link #hashCode()}</dt>
+     *      <dd>
+     *          Should be tuned to adjust the number of entry in the transposition table as well as its memory footprint.
+     *          Increasing the number of possible hashCode values will allow more transpositions and consume more memory.
+     *      </dd>
+     *      <dt>{@link #equals(Object)}</dt>
+     *      <dd>
+     *          Might be tuned to avoid using an invalid transposition du to collisions in the transposition table.
+     *      </dd>
+     *  </dl>
+     *  Use {@link #saveTransposition(Object, Transposition, double, int, int)} to implement replacement strategy.
+     *
+     * @see #saveTransposition(Object, Transposition, double, int, int)
      * @return
-     *      the value for the current configuration
+     *      The key representing the current configuration.
+     *      MUST be non null and preferably immutable.
      */
-    public abstract T getTranspositionValue();
-
-    /**
-     * Returns all the transpositions representing the current game configuration.
-     * @return
-     *      a {@link Iterable} of transpositions
-     */
-    public Iterable<T> getSymmetricTranspositionValues() {
-        return Collections.singleton(getTranspositionValue());
-    }
+    public abstract K getTranspositionKey();
 
     /**
      * Represent the group in which the current transposition belong.<br/>
      * Groups can be use to lower the number of transposition stored in memory :
      * <dl>
-     * <dt>Reversi</dt>
-     * <dd>Transpositions can be grouped by number of discs on board</dd>
-     * <dt>Chess</dt>
-     * <dd>Transpositions can be grouped by number of left pieces of each color on the board</dd>
-     * <dt>Connect Four</dt>
-     * <dd>Transpositions can be grouped by number of dropped discs</dd>
-     * <dt>...</dt>
+     *     <dt>Reversi</dt>
+     *     <dd>Transpositions can be grouped by number of discs on board</dd>
+     *     <dt>Chess</dt>
+     *     <dd>Transpositions can be grouped by number of left pieces of each color on the board</dd>
+     *     <dt>Connect Four</dt>
+     *     <dd>Transpositions can be grouped by number of dropped discs</dd>
      * </dl>
      * Groups <b>MUST</b> be ordered such as when the current configuration hash belong to group
-     * G1, transpositions that belongs to groups G < G1 can be forgiven... If you don't want to
+     * G1, transpositions that belongs to groups G < G1 can be removed... If you don't want to
      * handle groups, let G be {@link Void} and return null.
      *
      * @return
-     *      the group for the current position
+     *      The group for the current position
      */
     public abstract G getGroup();
 
-    private void saveTransposition(Map<T, Transposition> transpositionTable, final int depth, final double score, final int flag) {
+    /**
+     * Save the transposition for the current position using a default strategy:
+     * <ul>
+     *     <li>existing transposition is null</li>
+     *     <li>existing transposition depth is lower than the remaining depth</li>
+     * </ul>
+     * Override this method to implement your own replacement strategy using additional criteria such as ancient,
+     *
+     * @param key the transposition key for the current configuration
+     * @param transposition the existing transposition for the given key hash (or null if no transposition exists)
+     * @param score the evaluation for the given depth
+     * @param depth the depth of the searched subtree (aka remaining depth)
+     * @param flag type of evaluation {@link #FLAG_EXACT}, {@link #FLAG_LOWERBOUND}, {@link #FLAG_UPPERBOUND}
+     */
+    protected void saveTransposition(final K key, final Transposition<K> transposition, final double score, final int depth, final int flag) {
+        if (transposition == null || transposition.depth <= depth) {
+            getTranspositionTable().put(key.hashCode(), new Transposition<K>(score, depth, flag, key));
+        }
+    }
+
+    private Map<Integer, Transposition<K>> getTranspositionTable() {
+        Map<Integer, Transposition<K>> transpositionTable = transpositionTableMap.get(getGroup());
         if (transpositionTable == null) {
             transpositionTable = transpositionTableFactory.newTranspositionTable();
             transpositionTableMap.put(getGroup(), transpositionTable);
         }
-        // save transposition
-        Transposition transposition = new Transposition(score, depth, flag);
-        for (T st : getSymmetricTranspositionValues()) {
-            transpositionTable.put(st, transposition);
-        }
+        return transpositionTable;
     }
 
     @Override
@@ -235,42 +246,39 @@ public abstract class TranspositionNegamax<M extends Move, T, G> extends Negamax
     protected double negamax(final MoveWrapper<M> wrapper, final int depth, final double alpha, final double beta) {
         double a = alpha;
         double b = beta;
-        Map<T, Transposition> transpositionTable = transpositionTableMap.get(getGroup());
-        if (transpositionTable != null) {
-            Transposition transposition = transpositionTable.get(getTranspositionValue());
-            if (transposition != null && depth <= transposition.depth) {
-                double value = (((transposition.depth - depth) & 1) == 0 ? 1 : -1) * transposition.value;
-                switch (transposition.flag) {
-                    case FLAG_EXACT:
-                        // transposition has a deeper or equal search depth
-                        // we can stop here as we already know the value
-                        // returned by the evaluation function
-                        return value;
-                    case FLAG_UPPERBOUND:
-                        if (value < beta) {
-                            b = value;
-                        }
-                        break;
-                    case FLAG_LOWERBOUND:
-                        if (value > alpha) {
-                            a = value;
-                        }
-                        break;
-                }
-                if (a >= b) {
-                    return value;
-                }
+        K key = getTranspositionKey();
+        Transposition<K> transposition = getTranspositionTable().get(key.hashCode());
+        if (transposition != null && depth <= transposition.depth && key.equals(transposition.key)) {
+            switch (transposition.flag) {
+                case FLAG_EXACT:
+                    // transposition has a deeper or equal search depth
+                    // we can stop here as we already know the value
+                    // returned by the evaluation function
+                    return transposition.value;
+                case FLAG_UPPERBOUND:
+                    if (transposition.value < beta) {
+                        b = transposition.value;
+                    }
+                    break;
+                case FLAG_LOWERBOUND:
+                    if (transposition.value > alpha) {
+                        a = transposition.value;
+                    }
+                    break;
+            }
+            if (a >= b) {
+                return transposition.value;
             }
         }
 
         double score = super.negamax(wrapper, depth, a, b);
 
         if (score <= a) {
-            saveTransposition(transpositionTable, depth, score, FLAG_UPPERBOUND);
+            saveTransposition(key, transposition, score, depth, FLAG_UPPERBOUND);
         } else if (score >= beta) {
-            saveTransposition(transpositionTable, depth, score, FLAG_LOWERBOUND);
+            saveTransposition(key, transposition, score, depth, FLAG_LOWERBOUND);
         } else {
-            saveTransposition(transpositionTable, depth, score, FLAG_EXACT);
+            saveTransposition(key, transposition, score, depth, FLAG_EXACT);
         }
 
         return score;

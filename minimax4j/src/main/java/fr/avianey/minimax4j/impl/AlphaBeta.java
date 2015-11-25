@@ -58,7 +58,9 @@ import java.util.Collection;
  * @author antoine vianey
  *
  * @param <M> Implementation of the Move interface to use
+ * @deprecated For testing and documentation purpose only, the preferred way to implement IA is to use {@link Negamax}.
  */
+@Deprecated
 public abstract class AlphaBeta<M extends Move> implements IA<M> {
 
     @Override

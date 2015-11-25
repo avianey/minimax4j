@@ -66,9 +66,10 @@ public class BestMoveTest {
                 new Object[]{2, new BaseParallelNegamax()},
                 new Object[]{3, new BaseParallelNegamax()},
                 // transposition IA
-                new Object[]{1, new TranspositionNegamaxWithGroup()},
-                new Object[]{2, new TranspositionNegamaxWithGroup()},
-                new Object[]{3, new TranspositionNegamaxWithGroup()}
+                new Object[]{1, new TranspositionNegamaxNoCollision()},
+                new Object[]{2, new TranspositionNegamaxNoCollision()},
+                new Object[]{3, new TranspositionNegamaxNoCollision()}/*,
+                new Object[]{4, new TranspositionNegamaxNoCollision()}*/
         );
     }
 

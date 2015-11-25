@@ -30,7 +30,7 @@ import com.google.common.base.Stopwatch;
 import fr.avianey.minimax4j.ia.BaseNegamax;
 import fr.avianey.minimax4j.ia.Cleanable;
 import fr.avianey.minimax4j.ia.IAMove;
-import fr.avianey.minimax4j.ia.TranspositionNegamaxWithGroup;
+import fr.avianey.minimax4j.ia.TranspositionNegamaxNoCollision;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,7 +46,7 @@ public class TranspositionSpeedTest {
     public static Collection<Object[]> params() {
         return Arrays.asList(
                 new Object[]{BaseNegamax.class, 3},
-                new Object[]{TranspositionNegamaxWithGroup.class, 3}
+                new Object[]{TranspositionNegamaxNoCollision.class, 3}
         );
     }
 

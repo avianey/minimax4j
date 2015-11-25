@@ -28,8 +28,6 @@ package fr.avianey.minimax4j.ia;
 
 import fr.avianey.bitboard4j.hash.ZobristHashing;
 
-import java.util.Arrays;
-
 import static fr.avianey.minimax4j.ia.Logic.GRID_SIZE;
 
 class TranspositionState extends BaseState {
@@ -66,5 +64,4 @@ class TranspositionState extends BaseState {
         super.unmakeMove(move);
         hash.remove(currentPlayer, move.getPosition());
     }
-
 }

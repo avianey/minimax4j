@@ -30,24 +30,24 @@ import fr.avianey.minimax4j.impl.TranspositionNegamax;
 
 import java.util.List;
 
-public class TranspositionNegamaxWithoutGroup extends TranspositionNegamax<IAMove, Integer, Void> implements Cleanable {
+public class TranspositionNegamaxNoCollision extends TranspositionNegamax<IAMove, TranspositionStateNoCollision.NoCollision, Integer> implements Cleanable {
 
     private final Logic logic;
-    private final TranspositionState state;
+    private final TranspositionStateNoCollision state;
 
-    public TranspositionNegamaxWithoutGroup() {
+    public TranspositionNegamaxNoCollision() {
         logic = new Logic();
-        state = new TranspositionState();
+        state = new TranspositionStateNoCollision();
     }
 
     @Override
-    public Integer getTranspositionValue() {
+    public TranspositionStateNoCollision.NoCollision getTranspositionKey() {
         return state.getTranspositionValue();
     }
 
     @Override
-    public Void getGroup() {
-        return null;
+    public Integer getGroup() {
+        return state.getGroup();
     }
 
     @Override
