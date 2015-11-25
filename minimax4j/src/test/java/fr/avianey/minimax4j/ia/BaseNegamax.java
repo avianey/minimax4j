@@ -26,40 +26,23 @@
  */
 package fr.avianey.minimax4j.ia;
 
-import fr.avianey.minimax4j.ParallelMinimax;
+import fr.avianey.minimax4j.impl.Negamax;
 
 import java.util.List;
 
-/**
- * Parallel version of the test {@code IA}.
- *
- * @author antoine vianey
- */
-public class ParallelIA extends ParallelMinimax<IAMove> implements Cleanable {
+public class BaseNegamax extends Negamax<IAMove> implements Cleanable {
 
     private final Logic logic;
-    private final State state;
+    private final BaseState state;
 
-    public ParallelIA(Algorithm algo, int nbPlayers) {
-        super(algo);
-        logic = new Logic(nbPlayers);
-        state = new State(nbPlayers);
-    }
-
-    private ParallelIA(ParallelIA ia) {
-        super(ia);
-        logic = ia.logic;
-        state = ia.state.clone();
+    public BaseNegamax() {
+        logic = new Logic();
+        state = new BaseState();
     }
 
     @Override
     public void clean() {
         state.clean();
-    }
-
-    @Override
-    public ParallelMinimax<IAMove> clone() {
-        return new ParallelIA(this);
     }
 
     @Override
@@ -101,5 +84,4 @@ public class ParallelIA extends ParallelMinimax<IAMove> implements Cleanable {
     public void previous() {
         state.previous();
     }
-
 }

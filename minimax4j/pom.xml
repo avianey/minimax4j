@@ -7,8 +7,8 @@
     <packaging>jar</packaging>
 	<version>1.0.1-SNAPSHOT</version>
 	<description>
-	    Minimax4j is a pure java implementation of the minimax algorithm.
-	    It provides implementation of standard minimax but also provides alpha-beta pruning, negamax or negascout.
+	    Minimax4j is a pure java implementation of the IA algorithm.
+	    It provides implementation of standard IA but also provides alpha-beta pruning, negamax or negascout.
 	    This project can be use to implement two-person zero-sum games of perfect information such as chess, reversi, connect four, ...
 	</description>
 	<contributors>
@@ -70,6 +70,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <additionalparam>${javadoc.additionalparam}</additionalparam>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -169,6 +172,15 @@
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
                 </repository>
             </distributionManagement>
+        </profile>
+        <profile>
+            <id>javadoc-8</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <javadoc.additionalparam>-Xdoclint:none</javadoc.additionalparam>
+            </properties>
         </profile>
     </profiles>
 	

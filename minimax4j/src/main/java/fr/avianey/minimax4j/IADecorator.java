@@ -1,9 +1,9 @@
 /*
  * This file is part of minimax4j.
  * <https://github.com/avianey/minimax4j>
- *  
- * The MIT License (MIT)
  *
+ * The MIT License (MIT)
+
  * Copyright (c) 2015 Antoine Vianey
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,25 +26,62 @@
  */
 package fr.avianey.minimax4j;
 
+import java.util.List;
+
 /**
- * 
- * Implement this interface to describe a Move in your game.<br>
- * A typical implementation for a Chess game would be :
- * <ul>
- * <li>The color of the piece</li>
- * <li>The type of the piece (king, queen, pawn, ...)</li>
- * <li>The position before the move</li>
- * <li>The position after the move</li>
- * </ul>
- * Additional information might be necessary to implement the abstract {@link IA#unmakeMove(Move)} method of the {@link IA} class :
- * <ul>
- * <li>Taken pieces</li>
- * <li>...</li>
- * </ul>
- * 
- * @author antoine vianey
- * @see IA#unmakeMove(Move)
- * @see IA#makeMove(Move)
  *
+ * @param <M>
  */
-public interface Move {}
+public abstract class IADecorator<M extends Move> implements IA<M> {
+
+    protected final IA<M> ia;
+
+    public IADecorator(IA<M> ia) {
+        this.ia = ia;
+    }
+
+    @Override
+    public M getBestMove(int depth) {
+        return ia.getBestMove(depth);
+    }
+
+    @Override
+    public boolean isOver() {
+        return ia.isOver();
+    }
+
+    @Override
+    public void makeMove(M move) {
+        ia.makeMove(move);
+    }
+
+    @Override
+    public void unmakeMove(M move) {
+        ia.unmakeMove(move);
+    }
+
+    @Override
+    public List<M> getPossibleMoves() {
+        return ia.getPossibleMoves();
+    }
+
+    @Override
+    public double evaluate() {
+        return ia.evaluate();
+    }
+
+    @Override
+    public double maxEvaluateValue() {
+        return ia.maxEvaluateValue();
+    }
+
+    @Override
+    public void next() {
+        ia.next();
+    }
+
+    @Override
+    public void previous() {
+        ia.previous();
+    }
+}

@@ -27,21 +27,15 @@
 package fr.avianey.minimax4j;
 
 import com.google.common.base.Stopwatch;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import fr.avianey.minimax4j.impl.Negamax;
+import fr.avianey.minimax4j.impl.ParallelNegamax;
 
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static fr.avianey.minimax4j.Minimax.Algorithm.NEGAMAX;
-
-@RunWith(Parameterized.class)
-public class SpeedTest {
+public class ParallelSpeedTest {
 
     private static final int TURNS = 64;
     private static final int COST = 1; // 1 ms
@@ -51,13 +45,44 @@ public class SpeedTest {
 
     private final int depth;
 
-    public SpeedTest(Class<? extends Minimax<VoidMove>> iaClass,
-                     int depth, int branchingFactor,
-                     long getPossibleMovesCost, long makeMoveCost, long unmakeMoveCost,
-                     long evaluateCost, long nextPreviousCost, long cloneCost) {
+    public static Collection<Object[]> params() {
+        return Arrays.asList(
+                new Object[]{NegamaxIA.class, 3, 4, 1, 1, 1, 1, 1, 1},
+                new Object[]{NegamaxIA.class, 3, 4, 2, 1, 1, 1, 1, 1},
+                new Object[]{NegamaxIA.class, 3, 4, 1, 2, 1, 1, 1, 1},
+                new Object[]{NegamaxIA.class, 3, 4, 1, 1, 2, 1, 1, 1},
+                new Object[]{NegamaxIA.class, 3, 4, 1, 1, 1, 2, 1, 1},
+                new Object[]{NegamaxIA.class, 3, 4, 1, 1, 1, 1, 2, 1},
+                new Object[]{NegamaxIA.class, 3, 4, 1, 1, 1, 1, 1, 2},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 2, 1, 1, 1, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 2, 1, 1, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 2, 1, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 2, 1, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 2, 1},
+                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 1, 2}
+        );
+    }
+
+    public static void main(String[] args) throws InstantiationException, IllegalAccessException {
+        for (Object[] params : params()) {
+            ParallelSpeedTest speedTest = new ParallelSpeedTest(
+                    (Class<? extends IA<VoidMove>>) params[0],
+                    (int) params[1], (int) params[2],
+                    (long) params[3], (long) params[5], (long) params[5],
+                    (long) params[6], (long) params[7], (long) params[8]);
+            speedTest.warmup();
+            speedTest.run();
+        }
+    }
+
+    public ParallelSpeedTest(Class<? extends IA<VoidMove>> iaClass,
+                             int depth, int branchingFactor,
+                             long getPossibleMovesCost, long makeMoveCost, long unmakeMoveCost,
+                             long evaluateCost, long nextPreviousCost, long cloneCost) {
         this.depth = depth;
-        if (BasicTestIA.class.equals(iaClass)) {
-            ia = new BasicTestIA(branchingFactor,
+        if (NegamaxIA.class.equals(iaClass)) {
+            ia = new NegamaxIA(branchingFactor,
                     COST * makeMoveCost, COST * unmakeMoveCost,
                     COST * getPossibleMovesCost, COST * evaluateCost,
                     COST * nextPreviousCost, COST * cloneCost);
@@ -70,38 +95,15 @@ public class SpeedTest {
         }
     }
 
-
-    @Parameters
-    public static Collection<Object[]> params() {
-        return Arrays.asList(
-//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 1, 1, 1, 1},
-//                new Object[]{BasicTestIA.class, 3, 4, 2, 1, 1, 1, 1, 1},
-//                new Object[]{BasicTestIA.class, 3, 4, 1, 2, 1, 1, 1, 1},
-//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 2, 1, 1, 1},
-//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 1, 2, 1, 1},
-//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 1, 1, 2, 1},
-//                new Object[]{BasicTestIA.class, 3, 4, 1, 1, 1, 1, 1, 2},
-                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 1, 1},
-                new Object[]{ParallelTestIA.class, 3, 4, 2, 1, 1, 1, 1, 1},
-                new Object[]{ParallelTestIA.class, 3, 4, 1, 2, 1, 1, 1, 1},
-                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 2, 1, 1, 1},
-                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 2, 1, 1},
-                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 2, 1},
-                new Object[]{ParallelTestIA.class, 3, 4, 1, 1, 1, 1, 1, 2}
-        );
-    }
-
-    @Before
     public void warmup() throws IllegalAccessException, InstantiationException {
         ia.clear();
-        dryRun((Minimax) ia);
+        dryRun((IA) ia);
     }
 
-    @Test
     public void run() throws IllegalAccessException, InstantiationException {
         Stopwatch watch = Stopwatch.createStarted();
         ia.clear();
-        dryRun((Minimax) ia);
+        dryRun((IA) ia);
         watch.stop();
         System.out.println(String.format(FORMAT, ia.getClass().getSuperclass().getSimpleName(), watch,
                 depth,
@@ -114,10 +116,10 @@ public class SpeedTest {
                 ia.getCloneCost()));
     }
 
-    private void dryRun(Minimax<VoidMove> minimax) {
-        while (!minimax.isOver()) {
-            VoidMove move = minimax.getBestMove(depth);
-            minimax.makeMove(move);
+    private void dryRun(IA<VoidMove> IA) {
+        while (!IA.isOver()) {
+            VoidMove move = IA.getBestMove(depth);
+            IA.makeMove(move);
         }
     }
 
@@ -162,7 +164,7 @@ public class SpeedTest {
         void clear();
     }
 
-    private static class BasicTestIA extends BasicMinimax<VoidMove> implements TestIA {
+    private static class NegamaxIA extends Negamax<VoidMove> implements TestIA {
 
         private final int branchingFactor;
         private final long makeMoveCost;
@@ -174,10 +176,9 @@ public class SpeedTest {
 
         private int turn = 0;
 
-        public BasicTestIA(int branchingFactor,
-                      long makeMoveCost, long unmakeMoveCost, long getPossibleMovesCost,
-                      long evaluateCost, long nextPreviousCost, long cloneCost) {
-            super(NEGAMAX);
+        public NegamaxIA(int branchingFactor,
+                         long makeMoveCost, long unmakeMoveCost, long getPossibleMovesCost,
+                         long evaluateCost, long nextPreviousCost, long cloneCost) {
             this.branchingFactor = branchingFactor;
             this.makeMoveCost = makeMoveCost;
             this.unmakeMoveCost = unmakeMoveCost;
@@ -271,7 +272,7 @@ public class SpeedTest {
         }
     }
 
-    private static class ParallelTestIA extends ParallelMinimax<VoidMove> implements TestIA {
+    private static class ParallelTestIA extends ParallelNegamax<VoidMove> implements TestIA {
 
         private final int branchingFactor;
         private final long makeMoveCost;
@@ -286,7 +287,6 @@ public class SpeedTest {
         public ParallelTestIA(int branchingFactor,
                       long makeMoveCost, long unmakeMoveCost, long getPossibleMovesCost,
                       long evaluateCost, long nextPreviousCost, long cloneCost) {
-            super(NEGAMAX);
             this.branchingFactor = branchingFactor;
             this.makeMoveCost = makeMoveCost;
             this.unmakeMoveCost = unmakeMoveCost;
@@ -345,7 +345,7 @@ public class SpeedTest {
         }
 
         @Override
-        public ParallelMinimax<VoidMove> clone() {
+        public ParallelNegamax<VoidMove> clone() {
             simulateCost(cloneCost);
             ParallelTestIA ia = new ParallelTestIA(branchingFactor, makeMoveCost, unmakeMoveCost, getPossibleMovesCost, evaluateCost, nextPreviousCost, cloneCost);
             ia.turn = turn;

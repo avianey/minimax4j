@@ -26,11 +26,10 @@
  */
 package fr.avianey.minimax4j;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
- * Abstract class implementing minimax and derivated decision rules for two-person 
+ * Base interface for minimax and derivated decision rules for two-person
  * <a href="http://en.wikipedia.org/wiki/Zero-sum_game">zero-sum</a> games of perfect information.
  * Extend this class to implement IA for several games, such as :
  * <ul>
@@ -47,37 +46,7 @@ import java.util.List;
  *
  * @param <M> Implementation of the Move interface to use
  */
-public interface Minimax<M extends Move> {
-    
-    /**
-     * Available decision rules
-     * 
-     * @author antoine vianey
-     */
-    enum Algorithm {
-        /** 
-         * The Minimax algorithm (slowest) 
-         * @see http://en.wikipedia.org/wiki/Minimax
-         **/
-        MINIMAX,
-        /** 
-         * The Mininma algorithm with alpha-beta pruning 
-         * @see http://en.wikipedia.org/wiki/Alpha-beta_pruning
-         **/
-        ALPHA_BETA,
-        /** 
-         * The Negamax algorithm with alpha-beta pruning
-         * @see http://en.wikipedia.org/wiki/Negamax
-         **/
-        NEGAMAX,
-        /** 
-         * The Negascout algorithm (fastest when strong move ordering is provided)<br/>
-         * Also called Principal Variation Search...
-         * @see Minimax#getPossibleMoves()
-         * @see http://en.wikipedia.org/wiki/Negascout
-         **/
-        NEGASCOUT;
-    }
+public interface IA<M extends Move> {
     
     /**
      * Get the best {@link Move} for the given search depth<br/>

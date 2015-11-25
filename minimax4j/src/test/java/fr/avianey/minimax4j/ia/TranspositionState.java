@@ -1,7 +1,7 @@
 /*
  * This file is part of minimax4j.
  * <https://github.com/avianey/minimax4j>
- *  
+ *
  * The MIT License (MIT)
  *
  * Copyright (c) 2015 Antoine Vianey
@@ -24,27 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.ia;
 
-/**
- * 
- * Implement this interface to describe a Move in your game.<br>
- * A typical implementation for a Chess game would be :
- * <ul>
- * <li>The color of the piece</li>
- * <li>The type of the piece (king, queen, pawn, ...)</li>
- * <li>The position before the move</li>
- * <li>The position after the move</li>
- * </ul>
- * Additional information might be necessary to implement the abstract {@link IA#unmakeMove(Move)} method of the {@link IA} class :
- * <ul>
- * <li>Taken pieces</li>
- * <li>...</li>
- * </ul>
- * 
- * @author antoine vianey
- * @see IA#unmakeMove(Move)
- * @see IA#makeMove(Move)
- *
- */
-public interface Move {}
+import fr.avianey.bitboard4j.hash.ZobristHashing;
+
+import static fr.avianey.minimax4j.ia.Logic.GRID_SIZE;
+
+class TranspositionState extends BaseState {
+
+    protected final ZobristHashing hash;
+
+    TranspositionState() {
+        super();
+        hash = new ZobristHashing(2, GRID_SIZE);
+    }
+
+    @Override
+    public void clean() {
+        super.clean();
+        hash.reset();
+    }
+
+    Integer getTranspositionValue() {
+        return hash.hashCode();
+    }
+
+    Integer getGroup() {
+        return turn;
+    }
+
+    @Override
+    void makeMove(IAMove move) {
+        hash.add(currentPlayer, move.getPosition());
+        super.makeMove(move);
+    }
+
+    @Override
+    void unmakeMove(IAMove move) {
+        super.unmakeMove(move);
+        hash.remove(currentPlayer, move.getPosition());
+    }
+}

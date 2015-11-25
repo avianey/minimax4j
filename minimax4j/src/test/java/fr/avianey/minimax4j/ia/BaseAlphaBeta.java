@@ -1,7 +1,7 @@
 /*
  * This file is part of minimax4j.
  * <https://github.com/avianey/minimax4j>
- *  
+ *
  * The MIT License (MIT)
  *
  * Copyright (c) 2015 Antoine Vianey
@@ -24,27 +24,64 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.ia;
 
-/**
- * 
- * Implement this interface to describe a Move in your game.<br>
- * A typical implementation for a Chess game would be :
- * <ul>
- * <li>The color of the piece</li>
- * <li>The type of the piece (king, queen, pawn, ...)</li>
- * <li>The position before the move</li>
- * <li>The position after the move</li>
- * </ul>
- * Additional information might be necessary to implement the abstract {@link IA#unmakeMove(Move)} method of the {@link IA} class :
- * <ul>
- * <li>Taken pieces</li>
- * <li>...</li>
- * </ul>
- * 
- * @author antoine vianey
- * @see IA#unmakeMove(Move)
- * @see IA#makeMove(Move)
- *
- */
-public interface Move {}
+import fr.avianey.minimax4j.impl.AlphaBeta;
+
+import java.util.List;
+
+public class BaseAlphaBeta extends AlphaBeta<IAMove> implements Cleanable {
+
+    private final Logic logic;
+    private final BaseState state;
+
+    public BaseAlphaBeta() {
+        logic = new Logic();
+        state = new BaseState();
+    }
+
+    @Override
+    public void clean() {
+        state.clean();
+    }
+
+    @Override
+    public boolean isOver() {
+        return logic.isOver(state);
+    }
+
+    @Override
+    public void makeMove(IAMove move) {
+        state.makeMove(move);
+    }
+
+    @Override
+    public void unmakeMove(IAMove move) {
+        state.unmakeMove(move);
+    }
+
+    @Override
+    public List<IAMove> getPossibleMoves() {
+        return logic.getPossibleMoves(state);
+    }
+
+    @Override
+    public double evaluate() {
+        return logic.evaluate(state);
+    }
+
+    @Override
+    public double maxEvaluateValue() {
+        return logic.maxEvaluateValue();
+    }
+
+    @Override
+    public void next() {
+        state.next();
+    }
+
+    @Override
+    public void previous() {
+        state.previous();
+    }
+}

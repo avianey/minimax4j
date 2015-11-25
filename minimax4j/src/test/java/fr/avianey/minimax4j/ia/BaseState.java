@@ -30,7 +30,7 @@ import java.util.Arrays;
 
 import static fr.avianey.minimax4j.ia.Logic.EMPTY_CELL;
 import static fr.avianey.minimax4j.ia.Logic.GRID_SIZE;
-import static fr.avianey.minimax4j.ia.Logic.GRID_VALUES;
+import static fr.avianey.minimax4j.ia.Logic.SIZE;
 
 /**
  * Wrapper to reuse state across IA implementations.
@@ -38,16 +38,14 @@ import static fr.avianey.minimax4j.ia.Logic.GRID_VALUES;
  *
  * @author antoine vianey
  */
-final class State implements Cleanable {
+class BaseState implements Cleanable {
 
-    private final int nbPlayers;
-    private final double[] grid = new double[GRID_SIZE];
-    private int turn;
-    private int currentPlayer;
+    protected final int[] grid = new int[GRID_SIZE];
+    protected int turn;
+    protected int currentPlayer;
 
-    State(int nbPlayers) {
-        this.nbPlayers = nbPlayers;
-        clean();
+    BaseState() {
+        Arrays.fill(grid, EMPTY_CELL);
     }
 
     @Override
@@ -59,41 +57,17 @@ final class State implements Cleanable {
 
     // for parallel minimax
     @Override
-    public State clone() {
-        State clone = new State(nbPlayers);
+    public BaseState clone() {
+        BaseState clone = new BaseState();
         clone.turn = turn;
         clone.currentPlayer = currentPlayer;
         System.arraycopy(grid, 0, clone.grid, 0, GRID_SIZE);
         return clone;
     }
 
-    // for transposition minimax
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        State state = (State) o;
-
-        if (turn != state.turn) return false;
-        if (currentPlayer != state.currentPlayer) return false;
-        return Arrays.equals(grid, state.grid);
-    }
-
-    // for transposition minimax
-    @Override
-    public int hashCode() {
-        int result = grid != null ? Arrays.hashCode(grid) : 0;
-        result = 31 * result + turn;
-        result = 31 * result + currentPlayer;
-        return result;
-    }
-
     void makeMove(IAMove move) {
         // take position
         grid[move.getPosition()] = currentPlayer;
-        // add the fraction of the score associated with the turn
-        grid[move.getPosition()] += (((GRID_VALUES[move.getPosition()] / (double) GRID_SIZE) * (GRID_SIZE - turn - 1)) / (double) GRID_SIZE);
         turn++;
         // move to next player
         next();
@@ -109,7 +83,7 @@ final class State implements Cleanable {
 
     void next() {
         currentPlayer++;
-        if (currentPlayer >= nbPlayers) {
+        if (currentPlayer > 1) {
             currentPlayer = 0;
         }
     }
@@ -117,11 +91,11 @@ final class State implements Cleanable {
     void previous() {
         currentPlayer--;
         if (currentPlayer < 0) {
-            currentPlayer = nbPlayers - 1;
+            currentPlayer = 1;
         }
     }
 
-    double[] getGrid() {
+    int[] getGrid() {
         return grid;
     }
 
@@ -131,5 +105,18 @@ final class State implements Cleanable {
 
     int getCurrentPlayer() {
         return currentPlayer;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        int n = 0;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                sb.append(grid[n++] == 0 ? 'O' : 'X');
+            }
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 }

@@ -24,9 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package fr.avianey.minimax4j;
+package fr.avianey.minimax4j.impl;
 
-import static fr.avianey.minimax4j.Minimax.Algorithm.NEGAMAX;
+import fr.avianey.minimax4j.IA;
+import fr.avianey.minimax4j.Move;
+
 import static java.lang.Runtime.getRuntime;
 
 import java.util.Collection;
@@ -37,47 +39,27 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
 /**
- * A {@link Minimax} implementation that distribute the tree exploration across processors.<br/>
+ * A {@link IA} implementation that distribute the tree exploration across processors.<br/>
  * 
- * @param <M>
+ * @param <M>  Implementation of the Move interface to use
  * @author antoine vianey
  */
-public abstract class ParallelMinimax<M extends Move> extends BasicMinimax<M> implements Cloneable {
+public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneable {
     
     private ForkJoinPool pool;
 
     /**
-     * Creates a new IA using the {@link Algorithm#NEGAMAX} algorithm<br/>
-     * {@link Algorithm#NEGASCOUT} performs slowly in case of a weak move ordering...
+     * Creates a new ParallelNegamax using {@link Runtime#availableProcessors()} for parallelism.
      */
-    public ParallelMinimax() {
-        this(NEGAMAX, getRuntime().availableProcessors());
+    public ParallelNegamax() {
+        this(getRuntime().availableProcessors());
     }
     
     /**
-     * Creates a new IA using the {@link Algorithm#NEGAMAX} algorithm and the given parallelism.
+     * Creates a new ParallelNegamax using the given parallelism.
      * @param parallelism
      */
-    public ParallelMinimax(int parallelism) {
-        this(NEGAMAX, parallelism);
-    }
-    
-    /**
-     * Creates a new IA using the provided algorithm and {@link Runtime#availableProcessors()} for parallelism.
-     * @param algo The decision rule to use
-     * @see Algorithm
-     */
-    public ParallelMinimax(Algorithm algo) {
-        this(algo, getRuntime().availableProcessors());
-    }
-    
-    /**
-     * Creates a new IA using the provided algorithm and the given parallelism.
-     * @param algo
-     * @param parallelism
-     */
-    public ParallelMinimax(Algorithm algo, int parallelism) {
-        super(algo);
+    public ParallelNegamax(int parallelism) {
         if (parallelism <= 0) {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " MUST use at least one processor.");
         }
@@ -89,8 +71,8 @@ public abstract class ParallelMinimax<M extends Move> extends BasicMinimax<M> im
      * This constructor SHOULD be used when creating clones as it skip {@link ForkJoinPool} configuration.
      * @param from
      */
-    protected ParallelMinimax(ParallelMinimax<M> from) {
-        super(from.getAlgorithm());
+    protected ParallelNegamax(ParallelNegamax<M> from) {
+        this(from.pool.getParallelism());
     }
     
     /**
@@ -106,30 +88,25 @@ public abstract class ParallelMinimax<M extends Move> extends BasicMinimax<M> im
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
         MoveWrapper<M> wrapper = new MoveWrapper<>();
-        switch (getAlgorithm()) {
-        default:
-        case NEGAMAX:
-            pool.invoke(new NegamaxAction<>(this, wrapper, null, depth, -maxEvaluateValue(), maxEvaluateValue()));
-            break;
-        }
+        pool.invoke(new NegamaxAction<>(this, wrapper, null, depth, -maxEvaluateValue(), maxEvaluateValue()));
         return wrapper.move;
     }
     
     @Override
-    public abstract ParallelMinimax<M> clone();
+    public abstract ParallelNegamax<M> clone();
 
     private static final class NegamaxAction<M extends Move> extends RecursiveTask<Double> {
 
         private static final long serialVersionUID = 1L;
         
         private final MoveWrapper<M> wrapper;
-        private final ParallelMinimax<M> minimax;
+        private final ParallelNegamax<M> minimax;
         private final int depth;
         private final M move;
         private final double alpha;
         private final double beta;
 
-        public NegamaxAction(ParallelMinimax<M> minimax, MoveWrapper<M> wrapper, M move, int depth, double alpha, double beta) {
+        public NegamaxAction(ParallelNegamax<M> minimax, MoveWrapper<M> wrapper, M move, int depth, double alpha, double beta) {
             this.wrapper = wrapper;
             this.depth = depth;
             this.minimax = minimax;
@@ -174,7 +151,7 @@ public abstract class ParallelMinimax<M extends Move> extends BasicMinimax<M> im
                     do {
                         // create sub tree exploration tasks
                         move = moves.next();
-                        ParallelMinimax<M> clone = minimax.clone();
+                        ParallelNegamax<M> clone = minimax.clone();
                         clone.makeMove(move);
                         tasks.add(new NegamaxAction<>(clone, null, move, depth - 1, -beta, -alpha));
                     } while (moves.hasNext());

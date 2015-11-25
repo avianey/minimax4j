@@ -47,21 +47,17 @@ public final class Logic {
     static final int[] GRID_VALUES = new int[GRID_SIZE];
     static {
         for (int i = 0; i < GRID_SIZE; i++) {
-            GRID_VALUES[i] = i;
+            GRID_VALUES[i] = i + 1;
         }
     }
 
-    private final int nbPlayers;
+    Logic() {}
 
-    Logic(int nbPlayers) {
-        this.nbPlayers = nbPlayers;
-    }
-
-    boolean isOver(State state) {
+    boolean isOver(BaseState state) {
         return state.getTurn() == GRID_SIZE;
     }
 
-    List<IAMove> getPossibleMoves(State state) {
+    List<IAMove> getPossibleMoves(BaseState state) {
         LinkedList<IAMove> moves = new LinkedList<>();
         int index = 0;
         for (double cell : state.getGrid()) {
@@ -73,18 +69,18 @@ public final class Logic {
         return moves;
     }
 
-    double evaluate(State state) {
+    double evaluate(BaseState state) {
         if (isOver(state)) {
             // check win
-            int[] scores = new int[nbPlayers];
+            int[] scores = new int[2];
             int index = 0;
-            for (double cell : state.getGrid()) {
+            for (int cell : state.getGrid()) {
                 if (cell != EMPTY_CELL) {
-                    scores[(int) floor(cell)] += GRID_VALUES[index] + cell - floor(cell);
+                    scores[cell] += GRID_VALUES[index];
                 }
                 index++;
             }
-            for (int i = 0; i < nbPlayers; i++) {
+            for (int i = 0; i < 2; i++) {
                 if (i != state.getCurrentPlayer() && scores[state.getCurrentPlayer()] < scores[i]) {
                     // player i win
                     return -MAX_SCORE + scores[state.getCurrentPlayer()];
@@ -97,10 +93,10 @@ public final class Logic {
         // maximize position
         int diff = 0;
         int index = 0;
-        for (double cell : state.getGrid()) {
-            if (floor(cell) == state.getCurrentPlayer()) {
+        for (int cell : state.getGrid()) {
+            if (cell == state.getCurrentPlayer()) {
                 // current player cell
-                diff += GRID_VALUES[index] + cell - floor(cell);
+                diff += GRID_VALUES[index];
             } else if (cell != EMPTY_CELL) {
                 // opponent cell
                 diff -= GRID_VALUES[index];
