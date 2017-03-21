@@ -62,5 +62,6 @@ Abstract mechanism that would likely fit into the API are :
 
 List of projects using minimax4j :
 * [Reversi](https://play.google.com/store/apps/details?id=net.androgames.reversi) for Android on Google play ([@avianey](https://github.com/avianey))
+* [Gomoku](https://github.com/makaw/gomoku) for desktop - Java/Swing ([@makaw](https://github.com/makaw))
 
 Fork the project and send a pull request to add your application in this list.
