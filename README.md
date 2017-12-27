@@ -50,9 +50,10 @@ SOFTWARE.
 
 Feel free to contribute by sending pull requests.  
 Abstract mechanism that would likely fit into the API are :
-* Transposition table
-* Quiescence search
-* Opening table
+[] Transposition table (to optimize & test)
+[] Quiescence search
+[] Opening table
+[] Best-First Search
 
 ## Contributors
 
