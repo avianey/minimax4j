@@ -30,6 +30,8 @@ import fr.avianey.minimax4j.IA;
 import fr.avianey.minimax4j.Move;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Minimax based implementation.
@@ -64,21 +66,20 @@ import java.util.Collection;
 public abstract class Minimax<M extends Move> implements IA<M> {
 
     @Override
-    public M getBestMove(final int depth) {
+    public List<M> getBestMoves(final int depth, List<M> orderedMoves) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
-        MoveWrapper<M> wrapper = new MoveWrapper<>();
-        minimax(wrapper, depth, 1);
-        return wrapper.move;
+        minimax(orderedMoves, depth, 1);
+        Collections.sort(orderedMoves);
+        return orderedMoves;
     }
 
-    private double minimax(final MoveWrapper<M> wrapper, final int depth, final int who) {
+    private double minimax(List<M> initialMoves, final int depth, final int who) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
-        M bestMove = null;
-        Collection<M> moves = getPossibleMoves();
+        Collection<M> moves = initialMoves != null ? initialMoves : getPossibleMoves();
         if (moves.isEmpty()) {
         	next();
             double score = minimaxScore(depth, who);
@@ -93,13 +94,12 @@ public abstract class Minimax<M extends Move> implements IA<M> {
                 makeMove(move);
                 score = minimaxScore(depth, who);
                 unmakeMove(move);
+                if (initialMoves != null) {
+                    move.value = score;
+                }
                 if (score > bestScore) {
                     bestScore = score;
-                    bestMove = move;
                 }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
             }
             return bestScore;
         } else {
@@ -110,13 +110,12 @@ public abstract class Minimax<M extends Move> implements IA<M> {
                 makeMove(move);
                 score = minimaxScore(depth, who);
                 unmakeMove(move);
+                if (initialMoves != null) {
+                    move.value = score;
+                }
                 if (score < bestScore) {
                     bestScore = score;
-                    bestMove = move;
                 }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
             }
             return bestScore;
         }

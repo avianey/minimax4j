@@ -41,8 +41,8 @@ public abstract class IADecorator<M extends Move> implements IA<M> {
     }
 
     @Override
-    public M getBestMove(int depth) {
-        return ia.getBestMove(depth);
+    public List<M> getBestMoves(int depth) {
+        return ia.getBestMoves(depth);
     }
 
     @Override

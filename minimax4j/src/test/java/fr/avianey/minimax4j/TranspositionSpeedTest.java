@@ -82,7 +82,7 @@ public class TranspositionSpeedTest {
 
     private void dryRun(IA<IAMove> IA) {
         while (!IA.isOver()) {
-            IA.makeMove(IA.getBestMove(depth));
+            IA.makeMove(IA.getBestMoves(depth).get(0));
         }
     }
 

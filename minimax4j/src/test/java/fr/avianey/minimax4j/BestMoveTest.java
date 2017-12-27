@@ -62,14 +62,14 @@ public class BestMoveTest {
                 new Object[]{2, new BaseNegamax()},
                 new Object[]{3, new BaseNegamax()},
                 // parallel IA
-                new Object[]{1, new BaseParallelNegamax()},
-                new Object[]{2, new BaseParallelNegamax()},
-                new Object[]{3, new BaseParallelNegamax()},
+//                new Object[]{1, new BaseParallelNegamax()},
+//                new Object[]{2, new BaseParallelNegamax()},
+//                new Object[]{3, new BaseParallelNegamax()},
                 // transposition IA
                 new Object[]{1, new TranspositionNegamaxNoCollision()},
                 new Object[]{2, new TranspositionNegamaxNoCollision()},
-                new Object[]{3, new TranspositionNegamaxNoCollision()}/*,
-                new Object[]{4, new TranspositionNegamaxNoCollision()}*/
+                new Object[]{3, new TranspositionNegamaxNoCollision()},
+                new Object[]{4, new TranspositionNegamaxNoCollision()}
         );
     }
 
@@ -77,7 +77,7 @@ public class BestMoveTest {
     public void shouldBestMoveAlwaysReturnLastAvailableCell() {
         int cell = Logic.GRID_SIZE - 1;
         while (!IA.isOver()) {
-            IAMove move = IA.getBestMove(depth);
+            IAMove move = IA.getBestMoves(depth).get(0);
             assertEquals("Best move must be highest available position in grid.", cell, move.getPosition());
             IA.makeMove(move);
             cell--;

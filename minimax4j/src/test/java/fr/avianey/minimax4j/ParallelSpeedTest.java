@@ -118,12 +118,12 @@ public class ParallelSpeedTest {
 
     private void dryRun(IA<VoidMove> IA) {
         while (!IA.isOver()) {
-            VoidMove move = IA.getBestMove(depth);
+            VoidMove move = IA.getBestMoves(depth).get(0);
             IA.makeMove(move);
         }
     }
 
-    private static class VoidMove implements Move {}
+    private static class VoidMove extends Move {}
 
     private static class VoidMoves extends AbstractList<VoidMove> {
 

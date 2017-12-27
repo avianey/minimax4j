@@ -49,13 +49,24 @@ import java.util.List;
 public interface IA<M extends Move> {
     
     /**
-     * Get the best {@link Move} for the given search depth<br/>
-     * This methods iterates over {@link #getPossibleMoves()} to find the best one.
-     * If two or more {@link Move} lead to the same best evaluation, the first one is returned.
+     * Get {@link Move} static evaluations at the given search depth<br/>
+     * This methods iterates over {@link #getPossibleMoves()} to evaluate each.
      * @param depth The search depth (must be > 0)
-     * @return the best possible move for the {@link #evaluate()} function
+     * @return The list of possible moves in descending evaluation order (best first)
+     * @see #evaluate()
      */
-    M getBestMove(final int depth);
+    default List<M> getBestMoves(final int depth) {
+        return this.getBestMoves(depth, getPossibleMoves());
+    }
+
+    /**
+     * Get {@link Move} static evaluations at the given search depth<br/>
+     * This methods iterates over provided ordered moves to evaluate each and maximize cutoff.
+     * @param depth The search depth (must be > 0)
+     * @return The list of possible moves in descending evaluation order (best first)
+     * @see #evaluate()
+     */
+    List<M> getBestMoves(final int depth, List<M> orderedMoves);
     
     /**
      * Tell weather or not the game is over.

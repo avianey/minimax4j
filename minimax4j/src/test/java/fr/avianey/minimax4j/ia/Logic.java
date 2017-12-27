@@ -29,8 +29,6 @@ package fr.avianey.minimax4j.ia;
 import java.util.LinkedList;
 import java.util.List;
 
-import static java.lang.Math.floor;
-
 /**
  * Stateless Wrapper to reuse logic across IA implementations.
  * This class <b>IS</b> safe to use in multiple concurrent threads.

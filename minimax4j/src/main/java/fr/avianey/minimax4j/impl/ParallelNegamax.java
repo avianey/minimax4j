@@ -29,14 +29,11 @@ package fr.avianey.minimax4j.impl;
 import fr.avianey.minimax4j.IA;
 import fr.avianey.minimax4j.Move;
 
-import static java.lang.Runtime.getRuntime;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
+
+import static java.lang.Runtime.getRuntime;
 
 /**
  * A {@link IA} implementation that distribute the tree exploration across processors.<br/>
@@ -57,7 +54,7 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
     
     /**
      * Creates a new ParallelNegamax using the given parallelism.
-     * @param parallelism
+     * @param parallelism how many workers should be used for computation
      */
     public ParallelNegamax(int parallelism) {
         if (parallelism <= 0) {
@@ -67,7 +64,7 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
     }
     
     /**
-     * Creates a new IA with the same {@link Algorithm} as the given instance.<br/>
+     * Creates a new IA with the same parallelism as the given instance.<br/>
      * This constructor SHOULD be used when creating clones as it skip {@link ForkJoinPool} configuration.
      * @param from
      */
@@ -80,16 +77,14 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
      * This method SHOULD be called from one thread at the time.
      * @param depth The search depth (must be > 0)
      * @return The best possible move
-     * @throws ExecutionException 
-     * @throws InterruptedException 
      */
-    public M getBestMove(final int depth) {
+    public List<M> getBestMoves(final int depth, List<M> orderedMoves) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
-        MoveWrapper<M> wrapper = new MoveWrapper<>();
-        pool.invoke(new NegamaxAction<>(this, wrapper, null, depth, -maxEvaluateValue(), maxEvaluateValue()));
-        return wrapper.move;
+        pool.invoke(new NegamaxAction<M>(this, orderedMoves, depth, -maxEvaluateValue(), maxEvaluateValue()));
+        Collections.sort(orderedMoves);
+        return orderedMoves;
     }
     
     @Override
@@ -99,35 +94,30 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
 
         private static final long serialVersionUID = 1L;
         
-        private final MoveWrapper<M> wrapper;
+        private final List<M> initialMoves;
         private final ParallelNegamax<M> minimax;
         private final int depth;
-        private final M move;
         private final double alpha;
         private final double beta;
 
-        public NegamaxAction(ParallelNegamax<M> minimax, MoveWrapper<M> wrapper, M move, int depth, double alpha, double beta) {
-            this.wrapper = wrapper;
+        NegamaxAction(ParallelNegamax<M> minimax, List<M> initialMoves, int depth, double alpha, double beta) {
+            this.initialMoves = initialMoves;
             this.depth = depth;
             this.minimax = minimax;
-            this.move = move;
             this.alpha = alpha;
             this.beta = beta;
         }
 
         @Override
         protected Double compute() {
-            try {
-                return negamax(wrapper, depth, alpha, beta);
-            } catch (InterruptedException | ExecutionException e) { /* ignore */ }
-            return alpha;
+            return negamax(initialMoves, depth, alpha, beta);
         }
         
-        private double negamax(final MoveWrapper<M> wrapper, final int depth, double alpha, double beta) throws InterruptedException, ExecutionException {
+        private double negamax(final List<M> initialMoves, final int depth, double alpha, double beta) {
             if (depth == 0 || minimax.isOver()) {
                 return minimax.evaluate();
             }
-            Iterator<M> moves = minimax.getPossibleMoves().iterator();
+            Iterator<M> moves = (initialMoves != null ? initialMoves : minimax.getPossibleMoves()).iterator();
             if (moves.hasNext()) {
                 // young brother wait
                 // reduce alpha beta window
@@ -136,11 +126,11 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
                 minimax.makeMove(move);
                 double score = -negamax(null, depth - 1, -beta, -alpha);
                 minimax.unmakeMove(move);
+                if (initialMoves != null) {
+                    move.value = score;
+                }
                 if (score > alpha) {
                     alpha = score;
-                    if (wrapper != null) {
-                        wrapper.move = move;
-                    }
                     if (alpha >= beta) {
                         // cutoff
                         return alpha;
@@ -153,7 +143,7 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
                         move = moves.next();
                         ParallelNegamax<M> clone = minimax.clone();
                         clone.makeMove(move);
-                        tasks.add(new NegamaxAction<>(clone, null, move, depth - 1, -beta, -alpha));
+                        tasks.add(new NegamaxAction<>(clone, null, depth - 1, -beta, -alpha));
                     } while (moves.hasNext());
                     // dispatch tasks across workers
                     // and wait for completion...
@@ -161,11 +151,12 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
                     // await termination of all brothers
                     // once all done alpha == best score
                     for (NegamaxAction<M> task : tasks) {
-                        if (-task.getRawResult() > alpha) {
-                            alpha = -task.getRawResult();
-                            if (wrapper != null) {
-                                wrapper.move = task.move;
-                            }
+                        score = -task.getRawResult();
+                        if (initialMoves != null) {
+                            move.value = score;
+                        }
+                        if (score > alpha) {
+                            alpha = score;
                             if (alpha >= beta) {
                                 // task lead to a cutoff...
                                 // we don't care of other brothers

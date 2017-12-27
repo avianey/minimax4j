@@ -30,6 +30,8 @@ import fr.avianey.minimax4j.IA;
 import fr.avianey.minimax4j.Move;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * AlphaBeta based implementation.
@@ -64,22 +66,21 @@ import java.util.Collection;
 public abstract class AlphaBeta<M extends Move> implements IA<M> {
 
     @Override
-    public M getBestMove(final int depth) {
+    public List<M> getBestMoves(final int depth, List<M> orderedMoves) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
-        MoveWrapper<M> wrapper = new MoveWrapper<>();
-        alphabeta(wrapper, depth, 1, -maxEvaluateValue(), maxEvaluateValue());
-        return wrapper.move;
+        alphabeta(orderedMoves, depth, 1, -maxEvaluateValue(), maxEvaluateValue());
+        Collections.sort(orderedMoves);
+        return orderedMoves;
     }
 
-    private double alphabeta(final MoveWrapper<M> wrapper, final int depth, final int who, double alpha, double beta) {
+    private double alphabeta(final List<M> initialMoves, final int depth, final int who, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
-        M bestMove = null;
         double score;
-        Collection<M> moves = getPossibleMoves();
+        Collection<M> moves = initialMoves != null ? initialMoves : getPossibleMoves();
         if (moves.isEmpty()) {
         	next();
             score = alphabetaScore(depth, who, alpha, beta);
@@ -91,16 +92,15 @@ public abstract class AlphaBeta<M extends Move> implements IA<M> {
                 makeMove(move);
                 score = alphabetaScore(depth, who, alpha, beta);
                 unmakeMove(move);
+                if (initialMoves != null) {
+                    move.value = score;
+                }
                 if (score > alpha) {
                     alpha = score;
-                    bestMove = move;
                     if (alpha >= beta) {
                         break;
                     }
                 }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
             }
             return alpha;
         } else {
@@ -108,16 +108,15 @@ public abstract class AlphaBeta<M extends Move> implements IA<M> {
                 makeMove(move);
                 score = alphabetaScore(depth, who, alpha, beta);
                 unmakeMove(move);
+                if (initialMoves != null) {
+                    move.value = score;
+                }
                 if (score < beta) {
                     beta = score;
-                    bestMove = move;
                     if (alpha >= beta) {
                         break;
                     }
                 }
-            }
-            if (wrapper != null) {
-                wrapper.move = bestMove;
             }
             return beta;
         }

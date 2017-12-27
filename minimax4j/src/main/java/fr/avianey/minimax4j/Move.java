@@ -26,6 +26,9 @@
  */
 package fr.avianey.minimax4j;
 
+import static java.lang.Double.isNaN;
+import static java.lang.Math.signum;
+
 /**
  * 
  * Implement this interface to describe a Move in your game.<br>
@@ -47,4 +50,20 @@ package fr.avianey.minimax4j;
  * @see IA#makeMove(Move)
  *
  */
-public interface Move {}
+public abstract class Move implements Comparable<Move> {
+
+    public double value = Double.NaN;
+
+    @Override
+    public int compareTo(Move move) {
+        if (isNaN(value) && isNaN(move.value)) {
+            return 0;
+        } else if (isNaN(value)) {
+            return -1;
+        } else if (isNaN(move.value)) {
+            return 1;
+        }
+        return (int) signum(move.value - value);
+    }
+
+}
