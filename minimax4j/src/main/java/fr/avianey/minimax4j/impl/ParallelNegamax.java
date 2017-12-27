@@ -82,7 +82,7 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
-        pool.invoke(new NegamaxAction<M>(this, orderedMoves, depth, -maxEvaluateValue(), maxEvaluateValue()));
+        pool.invoke(new NegamaxAction<>(this, orderedMoves, null, depth, -maxEvaluateValue(), maxEvaluateValue()));
         Collections.sort(orderedMoves);
         return orderedMoves;
     }
@@ -96,12 +96,14 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
         
         private final List<M> initialMoves;
         private final ParallelNegamax<M> minimax;
+        private final M move;
         private final int depth;
         private final double alpha;
         private final double beta;
 
-        NegamaxAction(ParallelNegamax<M> minimax, List<M> initialMoves, int depth, double alpha, double beta) {
+        NegamaxAction(ParallelNegamax<M> minimax, List<M> initialMoves, M move, int depth, double alpha, double beta) {
             this.initialMoves = initialMoves;
+            this.move = move;
             this.depth = depth;
             this.minimax = minimax;
             this.alpha = alpha;
@@ -143,7 +145,7 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
                         move = moves.next();
                         ParallelNegamax<M> clone = minimax.clone();
                         clone.makeMove(move);
-                        tasks.add(new NegamaxAction<>(clone, null, depth - 1, -beta, -alpha));
+                        tasks.add(new NegamaxAction<>(clone, null, move, depth - 1, -beta, -alpha));
                     } while (moves.hasNext());
                     // dispatch tasks across workers
                     // and wait for completion...
@@ -153,7 +155,7 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
                     for (NegamaxAction<M> task : tasks) {
                         score = -task.getRawResult();
                         if (initialMoves != null) {
-                            move.value = score;
+                            task.move.value = score;
                         }
                         if (score > alpha) {
                             alpha = score;
