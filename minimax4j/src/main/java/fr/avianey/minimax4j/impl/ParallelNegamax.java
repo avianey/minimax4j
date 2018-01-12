@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
+import static fr.avianey.minimax4j.IAUtils.iterableToSortedList;
 import static java.lang.Runtime.getRuntime;
 
 /**
@@ -78,10 +79,11 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
      * @param depth The search depth (must be > 0)
      * @return The best possible move
      */
-    public List<M> getBestMoves(final int depth, List<M> orderedMoves) {
+    public List<M> getBestMoves(final int depth, Iterable<M> possibleMoves) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
+        List<M> orderedMoves = iterableToSortedList(possibleMoves);
         pool.invoke(new NegamaxAction<>(this, orderedMoves, null, depth, -maxEvaluateValue(), maxEvaluateValue()));
         Collections.sort(orderedMoves);
         return orderedMoves;
@@ -115,7 +117,7 @@ public abstract class ParallelNegamax<M extends Move> implements IA<M>, Cloneabl
             return negamax(initialMoves, depth, alpha, beta);
         }
         
-        private double negamax(final List<M> initialMoves, final int depth, double alpha, double beta) {
+        private double negamax(final Iterable<M> initialMoves, final int depth, double alpha, double beta) {
             if (depth == 0 || minimax.isOver()) {
                 return minimax.evaluate();
             }

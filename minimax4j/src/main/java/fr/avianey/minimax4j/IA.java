@@ -26,6 +26,7 @@
  */
 package fr.avianey.minimax4j;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -63,10 +64,11 @@ public interface IA<M extends Move> {
      * Get {@link Move} static evaluations at the given search depth<br/>
      * This methods iterates over provided ordered moves to evaluate each and maximize cutoff.
      * @param depth The search depth (must be > 0)
+     * @param possibleMoves The list of possible moves
      * @return The list of possible moves in descending evaluation order (best first)
      * @see #evaluate()
      */
-    List<M> getBestMoves(final int depth, List<M> orderedMoves);
+    List<M> getBestMoves(final int depth, Iterable<M> possibleMoves);
     
     /**
      * Tell weather or not the game is over.
@@ -104,7 +106,7 @@ public interface IA<M extends Move> {
      * @return
      *         The list of the current player possible moves
      */
-    List<M> getPossibleMoves();
+    Iterable<M> getPossibleMoves();
 
     /**
      * Evaluate the state of the game <strong>for the current player</strong> after a move.

@@ -28,10 +28,6 @@ package fr.avianey.minimax4j;
 
 import java.util.List;
 
-/**
- *
- * @param <M>
- */
 public abstract class IADecorator<M extends Move> implements IA<M> {
 
     protected final IA<M> ia;
@@ -61,7 +57,7 @@ public abstract class IADecorator<M extends Move> implements IA<M> {
     }
 
     @Override
-    public List<M> getPossibleMoves() {
+    public Iterable<M> getPossibleMoves() {
         return ia.getPossibleMoves();
     }
 

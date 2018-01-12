@@ -28,8 +28,6 @@ package fr.avianey.minimax4j.ia;
 
 import fr.avianey.minimax4j.impl.ParallelNegamax;
 
-import java.util.List;
-
 /**
  * Parallel version of the test {@code BasicMinimax}.
  *
@@ -77,7 +75,7 @@ public class BaseParallelNegamax extends ParallelNegamax<IAMove> implements Clea
     }
 
     @Override
-    public List<IAMove> getPossibleMoves() {
+    public Iterable<IAMove> getPossibleMoves() {
         return logic.getPossibleMoves(state);
     }
 

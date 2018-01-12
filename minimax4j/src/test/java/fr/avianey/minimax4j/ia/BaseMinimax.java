@@ -28,8 +28,6 @@ package fr.avianey.minimax4j.ia;
 
 import fr.avianey.minimax4j.impl.Minimax;
 
-import java.util.List;
-
 /**
  * Basic IA to test behaviour and speed of the various implementations.
  * We simulate a game where each cell of a 8x8 grid has a score corresponding
@@ -71,7 +69,7 @@ public class BaseMinimax extends Minimax<IAMove> implements Cleanable {
     }
 
     @Override
-    public List<IAMove> getPossibleMoves() {
+    public Iterable<IAMove> getPossibleMoves() {
         return logic.getPossibleMoves(state);
     }
 

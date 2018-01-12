@@ -29,9 +29,11 @@ package fr.avianey.minimax4j.impl;
 import fr.avianey.minimax4j.IA;
 import fr.avianey.minimax4j.Move;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+
+import static fr.avianey.minimax4j.IAUtils.iterableToSortedList;
 
 /**
  * Minimax based implementation.
@@ -66,21 +68,22 @@ import java.util.List;
 public abstract class Minimax<M extends Move> implements IA<M> {
 
     @Override
-    public List<M> getBestMoves(final int depth, List<M> orderedMoves) {
+    public List<M> getBestMoves(final int depth, Iterable<M> possibleMoves) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
+        List<M> orderedMoves = iterableToSortedList(possibleMoves);
         minimax(orderedMoves, depth, 1);
         Collections.sort(orderedMoves);
         return orderedMoves;
     }
 
-    private double minimax(List<M> initialMoves, final int depth, final int who) {
+    private double minimax(Iterable<M> initialMoves, final int depth, final int who) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
-        Collection<M> moves = initialMoves != null ? initialMoves : getPossibleMoves();
-        if (moves.isEmpty()) {
+        Iterator<M> moves = (initialMoves != null ? initialMoves : getPossibleMoves()).iterator();
+        if (!moves.hasNext()) {
         	next();
             double score = minimaxScore(depth, who);
             previous();
@@ -90,7 +93,8 @@ public abstract class Minimax<M extends Move> implements IA<M> {
             // max
             double score;
             double bestScore = -maxEvaluateValue();
-            for (M move : moves) {
+            while (moves.hasNext()) {
+                M move = moves.next();
                 makeMove(move);
                 score = minimaxScore(depth, who);
                 unmakeMove(move);
@@ -106,7 +110,8 @@ public abstract class Minimax<M extends Move> implements IA<M> {
             // min
             double score;
             double bestScore = maxEvaluateValue();
-            for (M move : moves) {
+            while (moves.hasNext()) {
+                M move = moves.next();
                 makeMove(move);
                 score = minimaxScore(depth, who);
                 unmakeMove(move);

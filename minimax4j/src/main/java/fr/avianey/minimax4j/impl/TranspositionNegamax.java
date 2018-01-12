@@ -32,6 +32,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import static fr.avianey.minimax4j.IAUtils.iterableToSortedList;
+
 /**
  * Negamax based with transposition table implementation.
  *
@@ -228,10 +230,11 @@ public abstract class TranspositionNegamax<M extends Move, K, G> extends Negamax
     }
 
     @Override
-    public List<M> getBestMoves(final int depth, List<M> orderedMoves) {
+    public List<M> getBestMoves(final int depth, Iterable<M> possibleMoves) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
+        List<M> orderedMoves = iterableToSortedList(possibleMoves);
         super.negamax(orderedMoves, depth, -maxEvaluateValue(), maxEvaluateValue());
         // clear useless groups
         clearGroups(getGroup());
@@ -240,7 +243,7 @@ public abstract class TranspositionNegamax<M extends Move, K, G> extends Negamax
     }
 
     @Override
-    protected double negamax(final List<M> wrapper, final int depth, final double alpha, final double beta) {
+    protected double negamax(final Iterable<M> possibleMoves, final int depth, final double alpha, final double beta) {
         double a = alpha;
         double b = beta;
         K key = getTranspositionKey();
@@ -268,7 +271,7 @@ public abstract class TranspositionNegamax<M extends Move, K, G> extends Negamax
             }
         }
 
-        double score = super.negamax(wrapper, depth, a, b);
+        double score = super.negamax(possibleMoves, depth, a, b);
 
         if (score <= a) {
             saveTransposition(key, transposition, score, depth, FLAG_UPPERBOUND);

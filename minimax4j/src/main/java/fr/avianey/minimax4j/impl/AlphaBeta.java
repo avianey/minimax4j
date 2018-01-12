@@ -29,9 +29,11 @@ package fr.avianey.minimax4j.impl;
 import fr.avianey.minimax4j.IA;
 import fr.avianey.minimax4j.Move;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+
+import static fr.avianey.minimax4j.IAUtils.iterableToSortedList;
 
 /**
  * AlphaBeta based implementation.
@@ -66,29 +68,31 @@ import java.util.List;
 public abstract class AlphaBeta<M extends Move> implements IA<M> {
 
     @Override
-    public List<M> getBestMoves(final int depth, List<M> orderedMoves) {
+    public List<M> getBestMoves(final int depth, Iterable<M> possibleMoves) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
+        List<M> orderedMoves = iterableToSortedList(possibleMoves);
         alphabeta(orderedMoves, depth, 1, -maxEvaluateValue(), maxEvaluateValue());
         Collections.sort(orderedMoves);
         return orderedMoves;
     }
 
-    private double alphabeta(final List<M> initialMoves, final int depth, final int who, double alpha, double beta) {
+    private double alphabeta(final Iterable<M> initialMoves, final int depth, final int who, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return who * evaluate();
         }
         double score;
-        Collection<M> moves = initialMoves != null ? initialMoves : getPossibleMoves();
-        if (moves.isEmpty()) {
+        Iterator<M> moves = (initialMoves != null ? initialMoves : getPossibleMoves()).iterator();
+        if (!moves.hasNext()) {
         	next();
             score = alphabetaScore(depth, who, alpha, beta);
             previous();
             return score;
         }
         if (who > 0) {
-            for (M move : moves) {
+            while (moves.hasNext()) {
+                M move = moves.next();
                 makeMove(move);
                 score = alphabetaScore(depth, who, alpha, beta);
                 unmakeMove(move);
@@ -104,7 +108,8 @@ public abstract class AlphaBeta<M extends Move> implements IA<M> {
             }
             return alpha;
         } else {
-            for (M move : moves) {
+            while (moves.hasNext()) {
+                M move = moves.next();
                 makeMove(move);
                 score = alphabetaScore(depth, who, alpha, beta);
                 unmakeMove(move);

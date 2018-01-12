@@ -28,8 +28,6 @@ package fr.avianey.minimax4j.ia;
 
 import fr.avianey.minimax4j.impl.AlphaBeta;
 
-import java.util.List;
-
 public class BaseAlphaBeta extends AlphaBeta<IAMove> implements Cleanable {
 
     private final Logic logic;
@@ -61,7 +59,7 @@ public class BaseAlphaBeta extends AlphaBeta<IAMove> implements Cleanable {
     }
 
     @Override
-    public List<IAMove> getPossibleMoves() {
+    public Iterable<IAMove> getPossibleMoves() {
         return logic.getPossibleMoves(state);
     }
 

@@ -29,9 +29,11 @@ package fr.avianey.minimax4j.impl;
 import fr.avianey.minimax4j.IA;
 import fr.avianey.minimax4j.Move;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+
+import static fr.avianey.minimax4j.IAUtils.iterableToSortedList;
 
 /**
  * Negamax based implementation.
@@ -67,43 +69,44 @@ import java.util.List;
  */
 public abstract class Negamax<M extends Move> implements IA<M> {
 
-    public List<M> getBestMoves(final int depth, List<M> orderedMoves) {
+    public List<M> getBestMoves(final int depth, Iterable<M> possibleMoves) {
         if (depth <= 0) {
             throw new IllegalArgumentException("Search depth MUST be > 0");
         }
+        List<M> orderedMoves = iterableToSortedList(possibleMoves);
         negamax(orderedMoves, depth, -maxEvaluateValue(), maxEvaluateValue());
         Collections.sort(orderedMoves);
         return orderedMoves;
     }
 
-    protected double negamax(List<M> initialMoves, final int depth, double alpha, double beta) {
+    protected double negamax(Iterable<M> initialMoves, final int depth, double alpha, double beta) {
         if (depth == 0 || isOver()) {
             return evaluate();
         }
-        Collection<M> moves = initialMoves != null ? initialMoves : getPossibleMoves();
-        if (moves.isEmpty()) {
+        Iterator<M> moves = (initialMoves != null ? initialMoves : getPossibleMoves()).iterator();
+        if (!moves.hasNext()) {
         	next();
         	double score = -negamax(null, depth - 1, -beta, -alpha);
         	previous();
         	return score;
-        } else {
-            double score;
-            for (M move : moves) {
-                makeMove(move);
-                score = -negamax(null, depth - 1, -beta, -alpha);
-                unmakeMove(move);
-                if (initialMoves != null) {
-                    move.value = score;
-                }
-                if (score > alpha) {
-                    alpha = score;
-                    if (alpha >= beta) {
-                        break;
-                    }
+        }
+        double score;
+        while (moves.hasNext()) {
+            M move = moves.next();
+            makeMove(move);
+            score = -negamax(null, depth - 1, -beta, -alpha);
+            unmakeMove(move);
+            if (initialMoves != null) {
+                move.value = score;
+            }
+            if (score > alpha) {
+                alpha = score;
+                if (alpha >= beta) {
+                    break;
                 }
             }
-            return alpha;
         }
+        return alpha;
     }
 
 }
